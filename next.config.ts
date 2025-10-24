@@ -1,6 +1,8 @@
 import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
+  // Skip build-time static generation for API routes that need database
+  skipTrailingSlashRedirect: true,
   eslint: {
     // Ignore ESLint errors during builds for deployment
     ignoreDuringBuilds: true,

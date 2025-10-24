@@ -16,6 +16,13 @@ const registerSchema = z.object({
 
 export async function POST(request: NextRequest) {
   try {
+    // Check if we have a valid database connection
+    if (!process.env.DATABASE_URL || process.env.DATABASE_URL.includes('placeholder') || process.env.DATABASE_URL.includes('build')) {
+      return NextResponse.json({ 
+        error: 'Database not configured. Please set DATABASE_URL environment variable.' 
+      }, { status: 503 })
+    }
+
     console.log('Registration API called')
     const body = await request.json()
     console.log('Request body:', body)

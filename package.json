@@ -4,8 +4,8 @@
   "private": true,
   "scripts": {
     "dev": "next dev",
-    "build": "next build",
-    "build:production": "NEXT_TELEMETRY_DISABLED=1 next build --no-lint",
+    "build": "node scripts/check-build-env.js && next build",
+    "build:production": "NEXT_TELEMETRY_DISABLED=1 node scripts/check-build-env.js && next build --no-lint",
     "start": "next start",
     "lint": "eslint --fix",
     "lint:check": "eslint",
@@ -16,7 +16,8 @@
     "db:seed": "tsx scripts/seed.ts",
     "db:init": "tsx scripts/init-db.ts",
     "db:studio": "prisma studio",
-    "vercel:deploy": "vercel --prod"
+    "vercel:deploy": "vercel --prod",
+    "check-build-env": "node scripts/check-build-env.js"
   },
   "dependencies": {
     "@auth/prisma-adapter": "^2.10.0",

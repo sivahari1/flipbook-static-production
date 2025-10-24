@@ -12,7 +12,10 @@ const loginSchema = z.object({
 })
 
 export const authOptions = {
-  adapter: PrismaAdapter(prisma),
+  // Only use PrismaAdapter if we have a valid database connection
+  ...(process.env.DATABASE_URL && !process.env.DATABASE_URL.includes('placeholder') && !process.env.DATABASE_URL.includes('build') 
+    ? { adapter: PrismaAdapter(prisma) } 
+    : {}),
   providers: [
     CredentialsProvider({
       name: 'credentials',
@@ -21,6 +24,11 @@ export const authOptions = {
         password: { label: 'Password', type: 'password' },
       },
       async authorize(credentials) {
+        // Check if we have a valid database connection
+        if (!process.env.DATABASE_URL || process.env.DATABASE_URL.includes('placeholder') || process.env.DATABASE_URL.includes('build')) {
+          throw new Error('Database not configured')
+        }
+
         if (!credentials) return null
         
         const { email, password } = loginSchema.parse(credentials)

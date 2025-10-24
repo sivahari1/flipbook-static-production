@@ -5,11 +5,14 @@ frontend:
       commands:
         - echo "Installing dependencies..."
         - npm ci --legacy-peer-deps
+        - echo "Checking build environment..."
+        - node scripts/check-build-env.js
         - echo "Generating Prisma client..."
         - npx prisma generate
     build:
       commands:
         - echo "Building Next.js application..."
+        - node scripts/check-build-env.js
         - npm run build
         - echo "Build completed successfully!"
   artifacts:

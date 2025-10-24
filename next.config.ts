@@ -9,9 +9,9 @@ const nextConfig: NextConfig = {
     // Ignore TypeScript errors during builds for deployment
     ignoreBuildErrors: true,
   },
-
+  output: 'standalone',
   images: {
-    domains: ['res.cloudinary.com', 'your-domain.com'],
+    domains: ['res.cloudinary.com'],
     formats: ['image/webp', 'image/avif'],
   },
   compress: true,
@@ -21,7 +21,7 @@ const nextConfig: NextConfig = {
     keepAlive: true,
   },
   webpack: (config, { isServer }) => {
-    // Handle node: scheme imports
+    // Handle node: scheme imports and native modules
     if (!isServer) {
       config.resolve.fallback = {
         ...config.resolve.fallback,
@@ -29,12 +29,24 @@ const nextConfig: NextConfig = {
         fs: false,
         path: false,
         os: false,
+        canvas: false,
+        'sodium-native': false,
+        argon2: false,
       };
+    }
+    
+    // Exclude problematic native modules from client bundle
+    config.externals = config.externals || [];
+    if (!isServer) {
+      config.externals.push('canvas', 'sodium-native', 'argon2', 'sharp');
     }
     
     return config;
   },
-  serverExternalPackages: ['argon2'],
+  serverExternalPackages: ['argon2', 'canvas', 'sodium-native', 'sharp'],
+  experimental: {
+    serverComponentsExternalPackages: ['argon2', 'canvas', 'sodium-native', 'sharp'],
+  },
   // Security headers
   async headers() {
     return [

@@ -1,0 +1,387 @@
+/* Accessibility-focused CSS for animations and interactions */
+
+/* Reduced Motion Support */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+
+  /* Disable parallax effects */
+  .parallax-element {
+    transform: none !important;
+  }
+
+  /* Disable auto-playing animations */
+  .auto-play {
+    animation-play-state: paused !important;
+  }
+
+  /* Simplify complex animations */
+  .complex-animation {
+    animation: none !important;
+    transition: none !important;
+  }
+}
+
+/* High Contrast Support */
+@media (prefers-contrast: high) {
+  :root {
+    --focus-ring-color: #000000;
+    --focus-ring-width: 3px;
+    --button-border-width: 2px;
+  }
+
+  /* Enhanced focus indicators */
+  .focus-visible,
+  *:focus-visible {
+    outline: var(--focus-ring-width) solid var(--focus-ring-color) !important;
+    outline-offset: 2px !important;
+  }
+
+  /* Enhanced button borders */
+  button,
+  .button {
+    border-width: var(--button-border-width) !important;
+  }
+
+  /* Ensure sufficient contrast for interactive elements */
+  .interactive-element {
+    border: 2px solid currentColor;
+  }
+}
+
+/* Reduced Transparency Support */
+@media (prefers-reduced-transparency: reduce) {
+  .glass-effect,
+  .backdrop-blur {
+    backdrop-filter: none !important;
+    background-color: rgba(255, 255, 255, 0.95) !important;
+  }
+
+  .semi-transparent {
+    opacity: 1 !important;
+  }
+}
+
+/* Focus Management */
+.focus-trap {
+  position: relative;
+}
+
+.focus-trap:focus-within {
+  outline: 2px solid #3B82F6;
+  outline-offset: 2px;
+}
+
+/* Screen Reader Only Content */
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}
+
+.sr-only-focusable:focus,
+.sr-only-focusable:active {
+  position: static;
+  width: auto;
+  height: auto;
+  padding: inherit;
+  margin: inherit;
+  overflow: visible;
+  clip: auto;
+  white-space: inherit;
+}
+
+/* Skip Links */
+.skip-link {
+  position: absolute;
+  top: -40px;
+  left: 6px;
+  background: #000;
+  color: #fff;
+  padding: 8px;
+  text-decoration: none;
+  z-index: 9999;
+  border-radius: 4px;
+}
+
+.skip-link:focus {
+  top: 6px;
+}
+
+/* Keyboard Navigation Indicators */
+.keyboard-user *:focus {
+  outline: 2px solid #3B82F6 !important;
+  outline-offset: 2px !important;
+}
+
+.mouse-user *:focus {
+  outline: none !important;
+}
+
+/* Touch Target Sizing */
+@media (pointer: coarse) {
+  .touch-target {
+    min-height: 44px;
+    min-width: 44px;
+  }
+
+  .touch-target-large {
+    min-height: 52px;
+    min-width: 52px;
+  }
+}
+
+/* Animation States for Screen Readers */
+.animation-loading[aria-busy="true"]::after {
+  content: " (Loading...)";
+  position: absolute;
+  left: -9999px;
+}
+
+.animation-complete[aria-live="polite"]::after {
+  content: " (Animation complete)";
+  position: absolute;
+  left: -9999px;
+}
+
+/* Accessible Color Palette */
+:root {
+  /* High contrast colors */
+  --accessible-blue: #0066CC;
+  --accessible-green: #008000;
+  --accessible-red: #CC0000;
+  --accessible-orange: #FF6600;
+  --accessible-purple: #6600CC;
+  
+  /* Focus indicators */
+  --focus-color: #005FCC;
+  --focus-shadow: 0 0 0 3px rgba(0, 95, 204, 0.3);
+  
+  /* Error states */
+  --error-color: #D32F2F;
+  --error-background: #FFEBEE;
+  
+  /* Success states */
+  --success-color: #388E3C;
+  --success-background: #E8F5E8;
+  
+  /* Warning states */
+  --warning-color: #F57C00;
+  --warning-background: #FFF3E0;
+}
+
+/* Accessible Form Elements */
+.form-field {
+  position: relative;
+}
+
+.form-field input:focus,
+.form-field textarea:focus,
+.form-field select:focus {
+  outline: 2px solid var(--focus-color);
+  outline-offset: 2px;
+  box-shadow: var(--focus-shadow);
+}
+
+.form-field .error {
+  color: var(--error-color);
+  background-color: var(--error-background);
+  border-color: var(--error-color);
+}
+
+.form-field .success {
+  color: var(--success-color);
+  background-color: var(--success-background);
+  border-color: var(--success-color);
+}
+
+/* Accessible Buttons */
+.accessible-button {
+  position: relative;
+  min-height: 44px;
+  padding: 12px 24px;
+  border: 2px solid transparent;
+  border-radius: 6px;
+  font-weight: 600;
+  text-align: center;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.accessible-button:focus {
+  outline: 2px solid var(--focus-color);
+  outline-offset: 2px;
+}
+
+.accessible-button:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.accessible-button[aria-pressed="true"] {
+  background-color: var(--accessible-blue);
+  color: white;
+}
+
+/* Loading States */
+.loading-indicator {
+  display: inline-block;
+  width: 20px;
+  height: 20px;
+  border: 2px solid #f3f3f3;
+  border-top: 2px solid var(--accessible-blue);
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .loading-indicator {
+    animation: none;
+    border-top-color: var(--accessible-blue);
+  }
+  
+  .loading-indicator::after {
+    content: "Loading...";
+    position: absolute;
+    left: -9999px;
+  }
+}
+
+@keyframes spin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+
+/* Accessible Tooltips */
+.tooltip {
+  position: relative;
+}
+
+.tooltip[aria-describedby] {
+  cursor: help;
+}
+
+.tooltip-content {
+  position: absolute;
+  bottom: 100%;
+  left: 50%;
+  transform: translateX(-50%);
+  background: #333;
+  color: white;
+  padding: 8px 12px;
+  border-radius: 4px;
+  font-size: 14px;
+  white-space: nowrap;
+  z-index: 1000;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.2s ease;
+}
+
+.tooltip:hover .tooltip-content,
+.tooltip:focus .tooltip-content {
+  opacity: 1;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .tooltip-content {
+    transition: none;
+  }
+}
+
+/* Accessible Modals */
+.modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.5);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+}
+
+.modal-content {
+  background: white;
+  border-radius: 8px;
+  padding: 24px;
+  max-width: 90vw;
+  max-height: 90vh;
+  overflow: auto;
+  position: relative;
+}
+
+.modal-content:focus {
+  outline: 2px solid var(--focus-color);
+  outline-offset: -2px;
+}
+
+/* Print Styles */
+@media print {
+  .no-print {
+    display: none !important;
+  }
+  
+  .animation-element {
+    animation: none !important;
+    transition: none !important;
+    transform: none !important;
+  }
+}
+
+/* Dark Mode Accessibility */
+@media (prefers-color-scheme: dark) {
+  :root {
+    --focus-color: #66B3FF;
+    --error-color: #FF6B6B;
+    --success-color: #51CF66;
+    --warning-color: #FFD43B;
+  }
+}
+
+/* Utility Classes for Accessibility */
+.visually-hidden {
+  position: absolute !important;
+  width: 1px !important;
+  height: 1px !important;
+  padding: 0 !important;
+  margin: -1px !important;
+  overflow: hidden !important;
+  clip: rect(0, 0, 0, 0) !important;
+  white-space: nowrap !important;
+  border: 0 !important;
+}
+
+.focusable {
+  outline: 2px solid transparent;
+  outline-offset: 2px;
+  transition: outline-color 0.15s ease-in-out;
+}
+
+.focusable:focus {
+  outline-color: var(--focus-color);
+}
+
+.no-animation {
+  animation: none !important;
+  transition: none !important;
+}
+
+.reduced-motion {
+  animation-duration: 0.01ms !important;
+  transition-duration: 0.01ms !important;
+}

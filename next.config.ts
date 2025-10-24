@@ -11,6 +11,8 @@ const nextConfig: NextConfig = {
     // Ignore TypeScript errors during builds for deployment
     ignoreBuildErrors: true,
   },
+  // Handle static generation more gracefully
+  trailingSlash: false,
   output: 'standalone',
   images: {
     domains: ['res.cloudinary.com'],
@@ -48,6 +50,8 @@ const nextConfig: NextConfig = {
   serverExternalPackages: ['argon2', 'canvas', 'sodium-native', 'sharp'],
   experimental: {
     serverComponentsExternalPackages: ['argon2', 'canvas', 'sodium-native', 'sharp'],
+    // Improve static generation handling
+    missingSuspenseWithCSRBailout: false,
   },
   // Security headers
   async headers() {

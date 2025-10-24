@@ -1,9 +1,6 @@
 'use client'
 
-import { useState, useEffect } from 'react'
-
-// Disable static generation for this page
-export const dynamic = 'force-dynamic'
+import { useState, useEffect, Suspense } from 'react'
 import { useRouter, useSearchParams } from 'next/navigation'
 import Link from 'next/link'
 import { CognitoAuthService } from '@/lib/cognito-auth'
@@ -11,7 +8,10 @@ import { LoadingSpinner } from '@/components/auth/LoadingSpinner'
 import { useAuth } from '@/contexts/AuthContext'
 import { getPlanById } from '@/lib/subscription-plans'
 
-export default function RegisterPage() {
+// Disable static generation for this page
+export const dynamic = 'force-dynamic'
+
+function RegisterForm() {
   const [formData, setFormData] = useState({
     username: '',
     email: '',
@@ -335,5 +335,17 @@ export default function RegisterPage() {
         </div>
       </div>
     </div>
+  )
+}
+
+export default function RegisterPage() {
+  return (
+    <Suspense fallback={
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+        <LoadingSpinner size="lg" />
+      </div>
+    }>
+      <RegisterForm />
+    </Suspense>
   )
 }

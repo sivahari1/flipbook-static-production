@@ -1,7 +1,102 @@
 'use client'
 
 import { useState, useEffect } from 'react'
-import { Download, Share2, FileText, Eye, Shield, Trash2 } from 'lucide-react'
+import { Download, Share2, FileText, Eye, Shield, Trash2, Maximize2, Minimize2 } from 'lucide-react'
+
+// Inline PDF Viewer Component
+function InlinePDFViewer({ documentId, title }: { documentId: string, title?: string }) {
+  const [isFullscreen, setIsFullscreen] = useState(false)
+  const [isLoading, setIsLoading] = useState(true)
+  const [error, setError] = useState<string | null>(null)
+  
+  const pdfUrl = `/api/documents/${documentId}/file`
+  
+  const handleLoad = () => {
+    setIsLoading(false)
+    setError(null)
+  }
+  
+  const handleError = () => {
+    setIsLoading(false)
+    setError('Failed to load PDF. The document may not be available.')
+  }
+  
+  const toggleFullscreen = () => {
+    setIsFullscreen(!isFullscreen)
+  }
+  
+  return (
+    <>
+      <div className={`relative bg-white rounded-lg border-2 border-gray-200 overflow-hidden ${isFullscreen ? 'fixed inset-4 z-50' : 'h-[600px]'}`}>
+        {/* PDF Viewer Header */}
+        <div className="flex items-center justify-between p-3 bg-gray-100 border-b">
+          <div className="flex items-center space-x-2">
+            <FileText className="w-4 h-4 text-gray-600" />
+            <span className="text-sm font-medium text-gray-700">
+              {title || 'PDF Document'}
+            </span>
+          </div>
+          <div className="flex items-center space-x-2">
+            <button
+              onClick={toggleFullscreen}
+              className="p-1 text-gray-600 hover:text-gray-900 hover:bg-gray-200 rounded transition-colors"
+              title={isFullscreen ? 'Exit Fullscreen' : 'Fullscreen'}
+            >
+              {isFullscreen ? <Minimize2 className="w-4 h-4" /> : <Maximize2 className="w-4 h-4" />}
+            </button>
+          </div>
+        </div>
+        
+        {/* Loading State */}
+        {isLoading && (
+          <div className="absolute inset-0 flex items-center justify-center bg-gray-50">
+            <div className="text-center">
+              <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mx-auto mb-2"></div>
+              <p className="text-sm text-gray-600">Loading PDF...</p>
+            </div>
+          </div>
+        )}
+        
+        {/* Error State */}
+        {error && (
+          <div className="absolute inset-0 flex items-center justify-center bg-gray-50">
+            <div className="text-center max-w-md p-4">
+              <div className="text-red-500 text-4xl mb-2">⚠️</div>
+              <p className="text-sm text-gray-600 mb-4">{error}</p>
+              <button
+                onClick={() => {
+                  setError(null)
+                  setIsLoading(true)
+                }}
+                className="px-4 py-2 bg-blue-600 text-white text-sm rounded-lg hover:bg-blue-700 transition-colors"
+              >
+                Retry
+              </button>
+            </div>
+          </div>
+        )}
+        
+        {/* PDF Iframe */}
+        <iframe
+          src={pdfUrl}
+          className="w-full h-full border-0"
+          title={title || 'PDF Document'}
+          onLoad={handleLoad}
+          onError={handleError}
+          style={{ display: error ? 'none' : 'block' }}
+        />
+      </div>
+      
+      {/* Fullscreen Overlay */}
+      {isFullscreen && (
+        <div 
+          className="fixed inset-0 bg-black bg-opacity-75 z-40"
+          onClick={toggleFullscreen}
+        />
+      )}
+    </>
+  )
+}
 
 interface SimplePDFDisplayProps {
   documentId: string
@@ -68,10 +163,35 @@ export function SimplePDFDisplay({ documentId, title, onDelete }: SimplePDFDispl
 
   const handleShare = async () => {
     try {
-      await navigator.clipboard.writeText(window.location.href)
-      alert('Document link copied to clipboard!')
+      // Create a share link via API
+      const response = await fetch(`/api/documents/${documentId}/share`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        }
+      })
+      
+      if (response.ok) {
+        const data = await response.json()
+        const shareUrl = data.share.url
+        
+        // Copy to clipboard
+        await navigator.clipboard.writeText(shareUrl)
+        
+        alert(`Share link created and copied to clipboard!\n\n${shareUrl}\n\nThis link will expire in 30 days.`)
+      } else {
+        const errorData = await response.json()
+        alert(`Failed to create share link: ${errorData.error}`)
+      }
     } catch (error) {
-      console.error('Failed to copy link:', error)
+      console.error('Error creating share link:', error)
+      // Fallback to current page URL
+      try {
+        await navigator.clipboard.writeText(window.location.href)
+        alert('Document link copied to clipboard!')
+      } catch (clipboardError) {
+        alert('Failed to create share link. Please try again.')
+      }
     }
   }
 
@@ -174,31 +294,25 @@ export function SimplePDFDisplay({ documentId, title, onDelete }: SimplePDFDispl
 
       {/* PDF Preview Area */}
       <div className="p-6 bg-gray-50">
-        <div className="bg-white border-2 border-dashed border-gray-300 rounded-lg p-8 text-center">
-          <div className="text-6xl mb-4">📄</div>
-          <h3 className="text-lg font-semibold text-gray-900 mb-2">PDF Document Ready</h3>
-          <p className="text-gray-600 mb-6">
-            Click the buttons below to view or download your PDF document.
-          </p>
+        <InlinePDFViewer documentId={documentId} title={title} />
+        
+        {/* Action Buttons */}
+        <div className="flex flex-col sm:flex-row gap-3 justify-center mt-6">
+          <button
+            onClick={handleDownload}
+            className="bg-green-600 text-white px-6 py-3 rounded-lg hover:bg-green-700 transition-colors flex items-center justify-center space-x-2"
+          >
+            <Download className="w-5 h-5" />
+            <span>Download PDF</span>
+          </button>
           
-          {/* Action Buttons */}
-          <div className="flex flex-col sm:flex-row gap-3 justify-center">
-            <button
-              onClick={handleViewInBrowser}
-              className="bg-blue-600 text-white px-6 py-3 rounded-lg hover:bg-blue-700 transition-colors flex items-center justify-center space-x-2"
-            >
-              <Eye className="w-5 h-5" />
-              <span>View PDF</span>
-            </button>
-            
-            <button
-              onClick={handleDownload}
-              className="bg-green-600 text-white px-6 py-3 rounded-lg hover:bg-green-700 transition-colors flex items-center justify-center space-x-2"
-            >
-              <Download className="w-5 h-5" />
-              <span>Download PDF</span>
-            </button>
-          </div>
+          <button
+            onClick={handleViewInBrowser}
+            className="bg-blue-600 text-white px-6 py-3 rounded-lg hover:bg-blue-700 transition-colors flex items-center justify-center space-x-2"
+          >
+            <Eye className="w-5 h-5" />
+            <span>Open in New Tab</span>
+          </button>
         </div>
       </div>
 

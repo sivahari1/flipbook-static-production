@@ -10,6 +10,33 @@ export async function POST(
   try {
     console.log('🔗 Creating share link for document:', params.id)
     
+    // Check if database is configured
+    const isDatabaseConfigured = process.env.DATABASE_URL && 
+                                !process.env.DATABASE_URL.includes('placeholder') && 
+                                !process.env.DATABASE_URL.includes('build')
+
+    // Handle demo documents
+    if (!isDatabaseConfigured || params.id?.startsWith('demo-')) {
+      console.log('🔗 Creating demo share link for:', params.id)
+      
+      // Generate a demo share code
+      const shareCode = `demo-share-${Date.now()}-${Math.random().toString(36).substring(2, 11)}`
+      const baseUrl = request.headers.get('origin') || process.env.NEXTAUTH_URL || 'http://localhost:3000'
+      
+      return NextResponse.json({
+        success: true,
+        share: {
+          code: shareCode,
+          url: `${baseUrl}/share/${shareCode}`,
+          expiresAt: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000), // 30 days
+          maxOpens: null,
+          openCount: 0,
+          demoMode: true
+        },
+        message: 'Demo share link created! This link will redirect to the document viewer.'
+      })
+    }
+    
     // Find the document
     const document = await prisma.document.findUnique({
       where: { id: params.id }
@@ -76,6 +103,34 @@ export async function GET(
 ) {
   try {
     console.log('📋 Getting share links for document:', params.id)
+    
+    // Check if database is configured
+    const isDatabaseConfigured = process.env.DATABASE_URL && 
+                                !process.env.DATABASE_URL.includes('placeholder') && 
+                                !process.env.DATABASE_URL.includes('build')
+
+    // Handle demo documents
+    if (!isDatabaseConfigured || params.id?.startsWith('demo-')) {
+      console.log('📋 Returning demo share links for:', params.id)
+      
+      const baseUrl = request.headers.get('origin') || process.env.NEXTAUTH_URL || 'http://localhost:3000'
+      
+      return NextResponse.json({
+        success: true,
+        shares: [
+          {
+            code: `demo-share-${params.id}`,
+            url: `${baseUrl}/share/demo-share-${params.id}`,
+            createdAt: new Date().toISOString(),
+            expiresAt: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString(),
+            maxOpens: null,
+            openCount: 0,
+            demoMode: true
+          }
+        ],
+        demoMode: true
+      })
+    }
     
     // Get all shares for this document
     const shares = await prisma.shareLink.findMany({

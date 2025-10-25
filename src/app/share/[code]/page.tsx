@@ -40,6 +40,39 @@ export default function SharePage() {
 
   const fetchShareData = async () => {
     try {
+      // Handle demo share links
+      if (code?.startsWith('demo-share-')) {
+        console.log('Handling demo share link:', code)
+        
+        // Extract document ID from demo share code
+        const documentId = code.replace('demo-share-', '').replace(/^demo-share-/, '')
+        
+        // Create demo share data
+        const demoShareData: ShareData = {
+          document: {
+            id: documentId || 'demo-sample-1',
+            title: 'Demo Document',
+            description: 'This is a demo document shared via FlipBook DRM',
+            pageCount: 5,
+            createdAt: new Date().toISOString()
+          },
+          shareLink: {
+            id: code,
+            code: code,
+            expiresAt: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString(),
+            maxOpens: null,
+            openCount: Math.floor(Math.random() * 10),
+            requirePass: false
+          },
+          isValid: true,
+          message: 'Demo share link - full functionality available'
+        }
+        
+        setShareData(demoShareData)
+        setLoading(false)
+        return
+      }
+      
       const response = await fetch(`/api/share/${code}`)
       const data = await response.json()
       

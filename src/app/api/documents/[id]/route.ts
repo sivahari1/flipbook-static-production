@@ -21,6 +21,58 @@ export async function GET(
   try {
     console.log('📋 Fetching document:', params?.id)
     
+    // Check if database is configured
+    const isDatabaseConfigured = process.env.DATABASE_URL && 
+                                !process.env.DATABASE_URL.includes('placeholder') && 
+                                !process.env.DATABASE_URL.includes('build')
+
+    // Handle demo documents
+    if (!isDatabaseConfigured || params?.id?.startsWith('demo-')) {
+      console.log('📋 Serving demo document:', params?.id)
+      
+      // Return demo document data
+      const demoDocuments = {
+        'demo-sample-1': {
+          id: 'demo-sample-1',
+          title: 'Sample Document 1',
+          description: 'This is a demo document for testing purposes',
+          pageCount: 5,
+          createdAt: new Date().toISOString(),
+          owner: 'demo@example.com',
+          hasPassphrase: false,
+          drmOptions: {},
+          canEdit: true,
+          accessLevel: 'owner'
+        },
+        'demo-sample-2': {
+          id: 'demo-sample-2',
+          title: 'Sample Document 2',
+          description: 'Another demo document',
+          pageCount: 8,
+          createdAt: new Date(Date.now() - 86400000).toISOString(),
+          owner: 'demo@example.com',
+          hasPassphrase: false,
+          drmOptions: {},
+          canEdit: true,
+          accessLevel: 'owner'
+        }
+      }
+      
+      const demoDoc = demoDocuments[params?.id as keyof typeof demoDocuments]
+      
+      if (!demoDoc) {
+        return NextResponse.json({
+          error: 'Demo document not found'
+        }, { status: 404 })
+      }
+      
+      return NextResponse.json({
+        success: true,
+        document: demoDoc,
+        demoMode: true
+      })
+    }
+    
     // Get user email from request headers (passed from client)
     const userEmail = request.headers.get('x-user-email')
     
@@ -117,6 +169,21 @@ export async function DELETE(
 
   try {
     console.log('🗑️ Deleting document:', params?.id)
+    
+    // Check if database is configured
+    const isDatabaseConfigured = process.env.DATABASE_URL && 
+                                !process.env.DATABASE_URL.includes('placeholder') && 
+                                !process.env.DATABASE_URL.includes('build')
+
+    // Handle demo documents
+    if (!isDatabaseConfigured || params?.id?.startsWith('demo-')) {
+      console.log('🗑️ Cannot delete demo document:', params?.id)
+      
+      return NextResponse.json({
+        error: 'Cannot delete demo documents',
+        message: 'Demo documents cannot be deleted. Upload your own documents to manage them.'
+      }, { status: 403 })
+    }
     
     // Get user email from request headers
     const userEmail = request.headers.get('x-user-email')

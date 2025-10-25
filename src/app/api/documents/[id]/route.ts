@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server'
 import { prisma } from '@/lib/prisma'
 import { CognitoAuthService } from '@/lib/cognito-auth'
+import { isDatabaseConfigured } from '@/lib/database-config'
 
 export const runtime = 'nodejs'
 

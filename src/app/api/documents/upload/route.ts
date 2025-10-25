@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { prisma } from '@/lib/prisma'
 import { getStorageProvider } from '@/lib/storage'
+import { isDatabaseConfigured } from '@/lib/database-config'
 
 export const runtime = 'nodejs'
 
@@ -77,11 +78,7 @@ export async function POST(request: NextRequest) {
   
   try {
     // Check if we have a valid database connection
-    const isDatabaseConfigured = process.env.DATABASE_URL && 
-                                !process.env.DATABASE_URL.includes('placeholder') && 
-                                !process.env.DATABASE_URL.includes('build')
-    
-    if (!isDatabaseConfigured) {
+    if (!isDatabaseConfigured()) {
       console.log('⚠️ Database not configured, using demo mode')
       return handleDemoUpload(request)
     }

@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server'
 import { prisma } from '@/lib/prisma'
+import { isDatabaseConfigured } from '@/lib/database-config'
 
 export const runtime = 'nodejs'
 
@@ -8,11 +9,7 @@ export async function GET(request: Request) {
     console.log('📋 Fetching documents...')
 
     // Check if database is configured
-    const isDatabaseConfigured = process.env.DATABASE_URL && 
-                                !process.env.DATABASE_URL.includes('placeholder') && 
-                                !process.env.DATABASE_URL.includes('build')
-
-    if (!isDatabaseConfigured) {
+    if (!isDatabaseConfigured()) {
       console.log('📋 Database not configured, returning demo documents')
       
       // Return demo documents

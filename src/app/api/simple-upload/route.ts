@@ -1,11 +1,10 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { join } from 'path'
 
 export const runtime = 'nodejs'
 
-// Demo upload endpoint that works without database
+// Simple upload endpoint that works without database or file storage
 export async function POST(request: NextRequest) {
-  console.log('📤 Demo document upload API called')
+  console.log('📤 Simple upload API called')
   
   try {
     // Parse form data
@@ -49,49 +48,56 @@ export async function POST(request: NextRequest) {
     }
 
     // Generate a unique document ID
-    const documentId = `demo-${Date.now()}-${Math.random().toString(36).substring(2, 11)}`
+    const documentId = `simple-${Date.now()}-${Math.random().toString(36).substring(2, 11)}`
     console.log('🆔 Generated document ID:', documentId)
     
-    // In demo mode, we'll simulate file storage without actually saving to disk
-    // This works around AWS Amplify's read-only file system
-    const fileName = `${documentId}.pdf`
+    // Process file in memory only (no storage)
     const fileBuffer = Buffer.from(await file.arrayBuffer())
+    console.log('💾 File processed in memory:', fileBuffer.length, 'bytes')
     
-    console.log('💾 File processed successfully (demo mode):', fileName)
-    console.log('📊 File size:', fileBuffer.length, 'bytes')
+    // Estimate page count based on file size (rough approximation)
+    const estimatedPageCount = Math.max(1, Math.floor(fileBuffer.length / 50000)) // ~50KB per page
     
-    // Get page count (simplified)
-    let pageCount = Math.floor(Math.random() * 20) + 5 // Random page count for demo
-    
-    console.log('✅ Demo document processed successfully')
+    console.log('✅ Simple upload processed successfully')
 
-    // Prepare response
+    // Success response
     const response = {
       success: true,
       document: {
         id: documentId,
         title: title.trim(),
         description: description?.trim() || null,
-        pageCount: pageCount,
+        pageCount: estimatedPageCount,
         createdAt: new Date().toISOString(),
-        fileName: fileName,
+        fileName: file.name,
         fileSize: file.size,
-        demoMode: true
+        originalName: file.name,
+        type: file.type,
+        mode: 'simple'
       },
-      message: 'Document uploaded successfully! (Demo mode - no database required)',
-      note: 'This is a demo upload. To enable full functionality, please configure the database.'
+      message: 'Document processed successfully!',
+      note: 'File processed in memory. For persistent storage and full features, configure database.',
+      timestamp: new Date().toISOString()
     }
     
     console.log('📤 Sending success response')
     return NextResponse.json(response, { status: 200 })
 
   } catch (error) {
-    console.error('❌ Demo document upload error:', error)
+    console.error('❌ Simple upload error:', error)
     
     return NextResponse.json({ 
-      error: 'Failed to upload document',
+      error: 'Failed to process document',
       details: error instanceof Error ? error.message : 'Unknown error occurred',
       timestamp: new Date().toISOString()
     }, { status: 500 })
   }
+}
+
+export async function GET() {
+  return NextResponse.json({
+    message: 'Simple upload endpoint is ready',
+    description: 'Processes PDF files in memory without requiring database or file storage',
+    usage: 'Send POST request with title and document file'
+  })
 }

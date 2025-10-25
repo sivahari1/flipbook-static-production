@@ -266,8 +266,8 @@ export default function DocumentManager() {
                   )}
                   <div className="flex items-center gap-6 text-sm text-gray-500">
                     <span>📄 {document.pageCount} pages</span>
-                    <span>👁️ {document._count.viewAudits} views</span>
-                    <span>🔗 {document._count.shareLinks} share links</span>
+                    <span>👁️ {document._count?.viewAudits || 0} views</span>
+                    <span>🔗 {document._count?.shareLinks || 0} share links</span>
                     <span>📅 {new Date(document.createdAt).toLocaleDateString()}</span>
                   </div>
                 </div>

@@ -246,11 +246,11 @@ export default function DocumentsPage() {
                       </div>
                       <div className="flex items-center space-x-1">
                         <Eye className="w-4 h-4" />
-                        <span>{doc._count.viewAudits} views</span>
+                        <span>{doc._count?.viewAudits || 0} views</span>
                       </div>
                       <div className="flex items-center space-x-1">
                         <Share2 className="w-4 h-4" />
-                        <span>{doc._count.shareLinks} share links</span>
+                        <span>{doc._count?.shareLinks || 0} share links</span>
                       </div>
                       <div className="flex items-center space-x-1">
                         <Calendar className="w-4 h-4" />

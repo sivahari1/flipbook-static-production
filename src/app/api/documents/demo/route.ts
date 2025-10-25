@@ -17,7 +17,12 @@ export async function GET(request: NextRequest) {
         createdAt: new Date().toISOString(),
         fileName: 'sample-document-1.pdf',
         fileSize: 245760,
-        demoMode: true
+        demoMode: true,
+        owner: { email: 'demo@example.com', role: 'CREATOR' },
+        shareLinks: [],
+        _count: { viewAudits: 15, shareLinks: 0 },
+        hasPassphrase: false,
+        viewAudits: Array(15).fill(null).map((_, i) => ({ id: i, viewedAt: new Date() }))
       },
       {
         id: 'demo-sample-2', 
@@ -27,7 +32,12 @@ export async function GET(request: NextRequest) {
         createdAt: new Date(Date.now() - 86400000).toISOString(), // Yesterday
         fileName: 'sample-document-2.pdf',
         fileSize: 512000,
-        demoMode: true
+        demoMode: true,
+        owner: { email: 'demo@example.com', role: 'CREATOR' },
+        shareLinks: [],
+        _count: { viewAudits: 8, shareLinks: 0 },
+        hasPassphrase: false,
+        viewAudits: Array(8).fill(null).map((_, i) => ({ id: i, viewedAt: new Date() }))
       }
     ]
 

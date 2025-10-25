@@ -1,5 +1,4 @@
 import { signUp, signIn, signOut, confirmSignUp, resendSignUpCode, getCurrentUser, fetchAuthSession } from 'aws-amplify/auth'
-import { prisma } from './prisma'
 import { generateSecretHash, getCognitoConfig } from './cognito-secret-hash'
 import './aws-config' // Import AWS config to ensure Amplify is configured
 
@@ -188,7 +187,7 @@ export class CognitoAuthService {
     }
   }
 
-  // Sync Cognito user to our database
+  // Sync Cognito user to our database via API
   static async syncUserToDatabase(username: string) {
     try {
       const cognitoUser = await this.getCurrentUser()
@@ -202,37 +201,30 @@ export class CognitoAuthService {
         return null
       }
 
-      // Check if user exists in our database
-      let user = await prisma.user.findUnique({
-        where: { email },
+      console.log('🔄 Syncing user to database:', email)
+      
+      // Call the sync-user API endpoint
+      const response = await fetch('/api/auth/sync-user', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          email,
+          name: cognitoUser.attributes?.name || email,
+        }),
       })
-
-      if (!user) {
-        // Create new user in our database with CREATOR role by default
-        // This allows them to view and create documents
-        user = await prisma.user.create({
-          data: {
-            email,
-            passwordHash: 'cognito-managed', // Placeholder since Cognito manages passwords
-            role: 'CREATOR', // Changed from SUBSCRIBER to CREATOR for document access
-            emailVerified: true,
-          },
-        })
-        console.log('Created new user in database with CREATOR role:', user.email)
-      } else {
-        // Update existing user
-        user = await prisma.user.update({
-          where: { email },
-          data: {
-            emailVerified: true,
-          },
-        })
-        console.log('Updated existing user in database:', user.email)
+      
+      if (!response.ok) {
+        throw new Error(`Failed to sync user: ${response.statusText}`)
       }
-
-      return user
+      
+      const result = await response.json()
+      console.log('✅ User synced successfully:', result)
+      return result.user
     } catch (error) {
-      console.error('Error syncing user to database:', error)
+      console.error('❌ Error syncing user to database:', error)
+      // Don't throw error to prevent login failure
       return null
     }
   }

@@ -76,11 +76,21 @@ export default function FastUploadPage() {
         headers['x-user-email'] = user.email
       }
       
-      const response = await fetch('/api/documents/upload', {
+      // Try main upload endpoint first, fallback to demo if database not configured
+      let response = await fetch('/api/documents/upload', {
         method: 'POST',
         headers,
         body: formData
       })
+      
+      // If main endpoint returns 503 (database not configured), try demo endpoint
+      if (response.status === 503) {
+        console.log('Database not configured, using demo upload...')
+        response = await fetch('/api/documents/upload-demo', {
+          method: 'POST',
+          body: formData // No headers needed for demo
+        })
+      }
       
       clearInterval(progressInterval)
       setUploadProgress(100)

@@ -57,13 +57,24 @@ export default function DocumentsPage() {
         headers['x-user-email'] = user.email
       }
       
-      const response = await fetch('/api/documents', {
+      // Try main documents endpoint first
+      let response = await fetch('/api/documents', {
         headers
       })
+      
+      // If main endpoint fails (500 - database not configured), try demo endpoint
+      if (response.status === 500) {
+        console.log('Database not configured, using demo documents...')
+        response = await fetch('/api/documents/demo')
+      }
+      
       const data = await response.json()
       
       if (data.success) {
         setDocuments(data.documents)
+        if (data.demoMode) {
+          setError('Demo Mode: Showing sample documents. Upload your own PDFs to see them here.')
+        }
       } else {
         setError(data.error || 'Failed to fetch documents')
       }

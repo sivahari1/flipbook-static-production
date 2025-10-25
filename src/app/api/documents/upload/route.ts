@@ -8,6 +8,15 @@ export async function POST(request: NextRequest) {
   console.log('📤 Document upload API called')
   
   try {
+    // Check if we have a valid database connection
+    if (!process.env.DATABASE_URL || process.env.DATABASE_URL.includes('placeholder') || process.env.DATABASE_URL.includes('build')) {
+      console.log('❌ Database not configured')
+      return NextResponse.json({ 
+        error: 'Service temporarily unavailable',
+        message: 'Database connection not configured. Please contact support.'
+      }, { status: 503 })
+    }
+
     // FIRST: Check authentication before processing any form data
     const userEmail = request.headers.get('x-user-email')
     
@@ -21,10 +30,19 @@ export async function POST(request: NextRequest) {
     
     console.log('🔍 Looking for authenticated user:', userEmail)
     
-    // Find the authenticated user
-    const currentUser = await prisma.user.findUnique({
-      where: { email: userEmail }
-    })
+    // Find the authenticated user with proper error handling
+    let currentUser
+    try {
+      currentUser = await prisma.user.findUnique({
+        where: { email: userEmail }
+      })
+    } catch (dbError) {
+      console.error('❌ Database connection error:', dbError)
+      return NextResponse.json({ 
+        error: 'Database connection failed',
+        message: 'Unable to verify user authentication. Please try again.'
+      }, { status: 503 })
+    }
     
     if (!currentUser) {
       console.log('❌ User not found in database:', userEmail)

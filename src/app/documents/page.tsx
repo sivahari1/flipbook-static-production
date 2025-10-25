@@ -62,10 +62,33 @@ export default function DocumentsPage() {
         headers
       })
       
-      // If main endpoint fails (500 - database not configured), try demo endpoint
+      // If main endpoint fails (500 - database not configured), use demo mode with client storage
       if (response.status === 500) {
         console.log('Database not configured, using demo documents...')
-        response = await fetch('/api/documents/demo')
+        
+        // Get uploaded documents from localStorage
+        let uploadedDocs = []
+        try {
+          const stored = localStorage.getItem('flipbook-demo-documents')
+          uploadedDocs = stored ? JSON.parse(stored) : []
+        } catch (e) {
+          console.log('No uploaded documents found')
+        }
+        
+        // Get default demo documents
+        const demoResponse = await fetch('/api/documents/demo')
+        const demoData = await demoResponse.json()
+        
+        // Combine uploaded and demo documents
+        const allDocuments = [...uploadedDocs, ...(demoData.documents || [])]
+        
+        setDocuments(allDocuments)
+        if (uploadedDocs.length > 0) {
+          setError(`Demo Mode: Showing ${uploadedDocs.length} uploaded document(s) and ${demoData.documents?.length || 0} sample documents.`)
+        } else {
+          setError('Demo Mode: Showing sample documents. Upload your own PDFs to see them here.')
+        }
+        return
       }
       
       const data = await response.json()

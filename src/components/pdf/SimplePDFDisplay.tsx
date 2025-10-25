@@ -76,15 +76,21 @@ function InlinePDFViewer({ documentId, title }: { documentId: string, title?: st
           </div>
         )}
         
-        {/* PDF Iframe */}
-        <iframe
-          src={pdfUrl}
-          className="w-full h-full border-0"
-          title={title || 'PDF Document'}
-          onLoad={handleLoad}
-          onError={handleError}
-          style={{ display: error ? 'none' : 'block' }}
-        />
+        {/* PDF Display */}
+        <div className="w-full h-full flex items-center justify-center bg-gray-100">
+          {!error && (
+            <div className="text-center">
+              <div className="text-6xl mb-4">📄</div>
+              <h3 className="text-lg font-semibold text-gray-900 mb-2">PDF Ready for Viewing</h3>
+              <p className="text-gray-600 mb-4">
+                Click "Download PDF" or "Open in New Tab" below to view the document.
+              </p>
+              <div className="text-sm text-gray-500">
+                In-browser PDF viewing is temporarily disabled due to security restrictions.
+              </div>
+            </div>
+          )}
+        </div>
       </div>
       
       {/* Fullscreen Overlay */}

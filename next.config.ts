@@ -57,7 +57,22 @@ const nextConfig: NextConfig = {
   async headers() {
     return [
       {
-        source: '/(.*)',
+        // Allow same-origin framing for PDF files
+        source: '/api/documents/:path*/file',
+        headers: [
+          {
+            key: 'X-Frame-Options',
+            value: 'SAMEORIGIN',
+          },
+          {
+            key: 'X-Content-Type-Options',
+            value: 'nosniff',
+          },
+        ],
+      },
+      {
+        // Strict security for all other pages
+        source: '/((?!api/documents/.*/file).*)',
         headers: [
           {
             key: 'X-Frame-Options',

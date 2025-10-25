@@ -129,6 +129,34 @@ export default function FastUploadPage() {
       setMessage(successMsg)
       setUploadedDocument(result.document)
       
+      // Save to localStorage in demo mode
+      if (result.document && result.document.demoMode) {
+        try {
+          const stored = localStorage.getItem('flipbook-demo-documents')
+          const existingDocs = stored ? JSON.parse(stored) : []
+          
+          // Create document object for storage
+          const docForStorage = {
+            ...result.document,
+            owner: { email: 'demo@example.com', role: 'CREATOR' },
+            shareLinks: [],
+            _count: { viewAudits: 0, shareLinks: 0 },
+            hasPassphrase: false,
+            viewAudits: []
+          }
+          
+          // Add to beginning of array
+          existingDocs.unshift(docForStorage)
+          
+          // Save back to localStorage
+          localStorage.setItem('flipbook-demo-documents', JSON.stringify(existingDocs))
+          
+          console.log('📱 Document saved to localStorage for demo mode')
+        } catch (storageError) {
+          console.error('Failed to save to localStorage:', storageError)
+        }
+      }
+      
       // Show additional success info
       console.log('🎉 SUCCESS! Document uploaded:', result.document?.title)
       console.log('📄 Document ID:', result.document?.id)

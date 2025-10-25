@@ -47,10 +47,18 @@ async function handleDemoUpload(request: NextRequest) {
         description: description?.trim() || null,
         pageCount,
         createdAt: new Date().toISOString(),
+        fileName: `${documentId}.pdf`,
+        fileSize: fileBuffer.length,
+        storageKey,
         demoMode: true,
-        storageKey
+        owner: { email: 'demo@example.com', role: 'CREATOR' },
+        shareLinks: [],
+        _count: { viewAudits: 0, shareLinks: 0 },
+        hasPassphrase: false,
+        viewAudits: []
       },
-      message: 'Document uploaded successfully in demo mode!'
+      message: 'Document uploaded successfully in demo mode!',
+      demoMode: true
     }
     
     return NextResponse.json(response, { status: 200 })

@@ -4,7 +4,7 @@ import { useState, useEffect } from 'react'
 import { useAuth } from '@/contexts/AuthContext'
 import { Header } from '@/components/layout/Header'
 import Link from 'next/link'
-import { Upload, FileText, Share2, Shield, Eye, Calendar, ExternalLink, Copy, MoreVertical, Trash2 } from 'lucide-react'
+import { Upload, FileText, Share2, Shield, Eye, Calendar, ExternalLink, Copy, MoreVertical, Trash2, RefreshCw } from 'lucide-react'
 
 interface Document {
   id: string
@@ -41,6 +41,19 @@ export default function DocumentsPage() {
     if (isAuthenticated) {
       fetchDocuments()
     }
+  }, [isAuthenticated])
+
+  // Refresh documents when page becomes visible (user returns from upload)
+  useEffect(() => {
+    const handleVisibilityChange = () => {
+      if (!document.hidden && isAuthenticated) {
+        console.log('📱 Page became visible, refreshing documents...')
+        fetchDocuments()
+      }
+    }
+
+    document.addEventListener('visibilitychange', handleVisibilityChange)
+    return () => document.removeEventListener('visibilitychange', handleVisibilityChange)
   }, [isAuthenticated])
 
   const fetchDocuments = async () => {
@@ -210,13 +223,23 @@ export default function DocumentsPage() {
             <h1 className="text-3xl font-bold text-gray-900 mb-2">My Documents</h1>
             <p className="text-gray-600">Manage and share your protected documents</p>
           </div>
-          <Link
-            href="/upload"
-            className="bg-gradient-to-r from-blue-600 to-purple-600 text-white px-6 py-3 rounded-lg font-medium hover:from-blue-700 hover:to-purple-700 transition-all duration-200 shadow-lg hover:shadow-xl inline-flex items-center space-x-2"
-          >
-            <Upload className="w-5 h-5" />
-            <span>Upload Document</span>
-          </Link>
+          <div className="flex items-center space-x-3">
+            <button
+              onClick={fetchDocuments}
+              disabled={isLoadingDocs}
+              className="inline-flex items-center px-3 py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition-colors disabled:opacity-50"
+              title="Refresh documents list"
+            >
+              <RefreshCw className={`w-4 h-4 ${isLoadingDocs ? 'animate-spin' : ''}`} />
+            </button>
+            <Link
+              href="/upload"
+              className="bg-gradient-to-r from-blue-600 to-purple-600 text-white px-6 py-3 rounded-lg font-medium hover:from-blue-700 hover:to-purple-700 transition-all duration-200 shadow-lg hover:shadow-xl inline-flex items-center space-x-2"
+            >
+              <Upload className="w-5 h-5" />
+              <span>Upload Document</span>
+            </Link>
+          </div>
         </div>
 
         {error && (

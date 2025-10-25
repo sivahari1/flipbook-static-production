@@ -129,20 +129,30 @@ export default function FastUploadPage() {
       setMessage(successMsg)
       setUploadedDocument(result.document)
       
-      // Save to localStorage in demo mode
-      if (result.document && result.document.demoMode) {
+      // Save to localStorage in demo mode (detect demo mode from response or document)
+      const isDemoMode = result.demoMode || result.document?.demoMode || result.document?.id?.startsWith('demo-') || result.document?.id?.startsWith('simple-')
+      
+      if (result.document && isDemoMode) {
         try {
           const stored = localStorage.getItem('flipbook-demo-documents')
           const existingDocs = stored ? JSON.parse(stored) : []
           
-          // Create document object for storage
+          // Create document object for storage with all required fields
           const docForStorage = {
-            ...result.document,
+            id: result.document.id,
+            title: result.document.title,
+            description: result.document.description || null,
+            pageCount: result.document.pageCount || 1,
+            createdAt: result.document.createdAt || new Date().toISOString(),
+            fileName: result.document.fileName || `${result.document.id}.pdf`,
+            fileSize: result.document.fileSize || 0,
+            storageKey: result.document.storageKey || `demo/${result.document.id}.pdf`,
             owner: { email: 'demo@example.com', role: 'CREATOR' },
             shareLinks: [],
             _count: { viewAudits: 0, shareLinks: 0 },
             hasPassphrase: false,
-            viewAudits: []
+            viewAudits: [],
+            demoMode: true
           }
           
           // Add to beginning of array
@@ -151,10 +161,14 @@ export default function FastUploadPage() {
           // Save back to localStorage
           localStorage.setItem('flipbook-demo-documents', JSON.stringify(existingDocs))
           
-          console.log('📱 Document saved to localStorage for demo mode')
+          console.log('📱 Document saved to localStorage for demo mode:', docForStorage.title)
+          console.log('📱 Total documents in localStorage:', existingDocs.length)
         } catch (storageError) {
           console.error('Failed to save to localStorage:', storageError)
         }
+      } else {
+        console.log('📱 Not saving to localStorage - not demo mode or no document')
+        console.log('📱 Demo mode check:', { isDemoMode, hasDocument: !!result.document })
       }
       
       // Show additional success info

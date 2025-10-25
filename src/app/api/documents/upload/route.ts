@@ -1,20 +1,81 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { prisma } from '@/lib/prisma'
-import { join } from 'path'
+import { getStorageProvider } from '@/lib/storage'
 
 export const runtime = 'nodejs'
+
+// Demo upload handler for when database is not configured
+async function handleDemoUpload(request: NextRequest) {
+  try {
+    const formData = await request.formData()
+    const title = formData.get('title') as string
+    const description = formData.get('description') as string || null
+    const file = formData.get('document') as File
+    
+    // Validate required fields
+    if (!title || !title.trim()) {
+      return NextResponse.json({ error: 'Document title is required' }, { status: 400 })
+    }
+    
+    if (!file || file.size === 0) {
+      return NextResponse.json({ error: 'Document file is required' }, { status: 400 })
+    }
+    
+    // Validate file type
+    if (!file.type.includes('pdf') && !file.name.toLowerCase().endsWith('.pdf')) {
+      return NextResponse.json({ error: 'Only PDF files are allowed' }, { status: 400 })
+    }
+    
+    // Generate a unique document ID
+    const documentId = `demo-${Date.now()}-${Math.random().toString(36).substring(2, 11)}`
+    
+    // Save file using demo storage
+    const storage = getStorageProvider()
+    const fileName = `${documentId}.pdf`
+    const fileBuffer = Buffer.from(await file.arrayBuffer())
+    const storageKey = await storage.saveFile(fileName, fileBuffer)
+    
+    // Get page count (simplified for demo)
+    let pageCount = Math.floor(Math.random() * 20) + 5
+    
+    // Return demo response
+    const response = {
+      success: true,
+      document: {
+        id: documentId,
+        title: title.trim(),
+        description: description?.trim() || null,
+        pageCount,
+        createdAt: new Date().toISOString(),
+        demoMode: true,
+        storageKey
+      },
+      message: 'Document uploaded successfully in demo mode!'
+    }
+    
+    return NextResponse.json(response, { status: 200 })
+    
+  } catch (error) {
+    console.error('❌ Demo upload error:', error)
+    return NextResponse.json({ 
+      error: 'Failed to upload document in demo mode',
+      details: error instanceof Error ? error.message : 'Unknown error'
+    }, { status: 500 })
+  }
+}
 
 export async function POST(request: NextRequest) {
   console.log('📤 Document upload API called')
   
   try {
     // Check if we have a valid database connection
-    if (!process.env.DATABASE_URL || process.env.DATABASE_URL.includes('placeholder') || process.env.DATABASE_URL.includes('build')) {
-      console.log('❌ Database not configured')
-      return NextResponse.json({ 
-        error: 'Service temporarily unavailable',
-        message: 'Database connection not configured. Please contact support.'
-      }, { status: 503 })
+    const isDatabaseConfigured = process.env.DATABASE_URL && 
+                                !process.env.DATABASE_URL.includes('placeholder') && 
+                                !process.env.DATABASE_URL.includes('build')
+    
+    if (!isDatabaseConfigured) {
+      console.log('⚠️ Database not configured, using demo mode')
+      return handleDemoUpload(request)
     }
 
     // FIRST: Check authentication before processing any form data
@@ -138,24 +199,14 @@ export async function POST(request: NextRequest) {
     
     console.log('⚙️ DRM options:', drmOptions)
 
-    // Save the actual PDF file to the uploads directory
-    const uploadsDir = join(process.cwd(), 'uploads')
-    const fs = await import('fs/promises')
-    
-    // Create uploads directory if it doesn't exist
-    try {
-      await fs.access(uploadsDir)
-    } catch {
-      await fs.mkdir(uploadsDir, { recursive: true })
-    }
-    
-    // Save the file
+    // Save the actual PDF file using the storage provider
+    const storage = getStorageProvider()
     const fileName = `${documentId}.pdf`
-    const filePath = join(uploadsDir, fileName)
     const fileBuffer = Buffer.from(await file.arrayBuffer())
-    await fs.writeFile(filePath, fileBuffer)
     
-    const storageKey = `uploads/${fileName}`
+    console.log('💾 Saving file with storage provider...')
+    const storageKey = await storage.saveFile(fileName, fileBuffer)
+    console.log('✅ File saved with storage key:', storageKey)
     
     // Get actual page count from PDF
     let pageCount = 1

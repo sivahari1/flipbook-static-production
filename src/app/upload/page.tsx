@@ -125,8 +125,15 @@ export default function FastUploadPage() {
         throw new Error(errorMsg)
       }
       
-      setMessage('✅ Upload successful!')
+      const successMsg = result.message || '✅ Upload successful!'
+      setMessage(successMsg)
       setUploadedDocument(result.document)
+      
+      // Show additional success info
+      console.log('🎉 SUCCESS! Document uploaded:', result.document?.title)
+      console.log('📄 Document ID:', result.document?.id)
+      console.log('📊 File size:', result.document?.fileSize, 'bytes')
+      console.log('📑 Page count:', result.document?.pageCount)
       
       // Reset form
       ;(e.target as HTMLFormElement).reset()
@@ -270,30 +277,39 @@ export default function FastUploadPage() {
 
               {/* Success Info */}
               {uploadedDocument && (
-                <div className="bg-green-50 border border-green-200 rounded-lg p-4">
-                  <h3 className="text-green-800 font-medium mb-2">Document Uploaded Successfully!</h3>
-                  <div className="text-green-700 text-sm space-y-1">
-                    <p><strong>Title:</strong> {uploadedDocument.title}</p>
-                    <p><strong>Pages:</strong> {uploadedDocument.pageCount}</p>
-                    <p><strong>ID:</strong> {uploadedDocument.id}</p>
+                <div className="bg-green-50 border border-green-200 rounded-lg p-6">
+                  <div className="flex items-center mb-3">
+                    <div className="text-green-500 text-2xl mr-3">🎉</div>
+                    <h3 className="text-green-800 font-bold text-lg">Upload Successful!</h3>
                   </div>
-                  <div className="mt-3 flex space-x-3">
-                    <a 
-                      href="/dashboard" 
-                      className="inline-flex items-center px-3 py-2 border border-transparent text-sm leading-4 font-medium rounded-md text-white bg-green-600 hover:bg-green-700"
-                    >
-                      View in Dashboard
-                    </a>
+                  <div className="text-green-700 space-y-2">
+                    <p><strong>📄 Title:</strong> {uploadedDocument.title}</p>
+                    <p><strong>📑 Pages:</strong> {uploadedDocument.pageCount}</p>
+                    <p><strong>🆔 Document ID:</strong> {uploadedDocument.id}</p>
+                    <p><strong>📊 File Size:</strong> {(uploadedDocument.fileSize / 1024).toFixed(1)} KB</p>
+                    {uploadedDocument.demoMode && (
+                      <p className="text-green-600 bg-green-100 p-2 rounded text-sm">
+                        <strong>ℹ️ Demo Mode:</strong> File processed successfully! For full features like sharing and analytics, configure the database.
+                      </p>
+                    )}
+                  </div>
+                  <div className="mt-4 flex space-x-3">
                     <button 
                       onClick={() => {
                         setUploadedDocument(null)
                         setMessage('')
                         setUploadProgress(0)
                       }}
-                      className="inline-flex items-center px-3 py-2 border border-gray-300 text-sm leading-4 font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50"
+                      className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-green-600 hover:bg-green-700"
                     >
-                      Upload Another
+                      ✅ Upload Another Document
                     </button>
+                    <a 
+                      href="/dashboard" 
+                      className="inline-flex items-center px-4 py-2 border border-gray-300 text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50"
+                    >
+                      📊 Go to Dashboard
+                    </a>
                   </div>
                 </div>
               )}

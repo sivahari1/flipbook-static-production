@@ -4,8 +4,9 @@
   "private": true,
   "scripts": {
     "dev": "next dev",
-    "build": "node scripts/check-build-env.js && next build",
-    "build:production": "NEXT_TELEMETRY_DISABLED=1 node scripts/check-build-env.js && next build --no-lint",
+    "build": "node amplify-env-setup.js && next build",
+    "build:production": "NEXT_TELEMETRY_DISABLED=1 node amplify-env-setup.js && next build --no-lint",
+    "build:amplify": "node amplify-env-setup.js && npx prisma generate && next build",
     "start": "next start",
     "lint": "eslint --fix",
     "lint:check": "eslint",

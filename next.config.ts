@@ -13,9 +13,9 @@ const nextConfig: NextConfig = {
   },
   // Handle static generation more gracefully
   trailingSlash: false,
-  output: 'standalone',
+  // Use default output for Amplify compatibility
   images: {
-    domains: ['res.cloudinary.com'],
+    domains: ['res.cloudinary.com', 'main.d39m2583vv0xam.amplifyapp.com'],
     formats: ['image/webp', 'image/avif'],
   },
   compress: true,

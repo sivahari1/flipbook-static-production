@@ -2,24 +2,11 @@
 
 import { useState, useEffect } from 'react'
 import { Download, Share2, FileText, Eye, Shield, Trash2, Maximize2, Minimize2 } from 'lucide-react'
+import { useAuth } from '@/contexts/AuthContext'
 
 // Inline PDF Viewer Component
 function InlinePDFViewer({ documentId, title }: { documentId: string, title?: string }) {
   const [isFullscreen, setIsFullscreen] = useState(false)
-  const [isLoading, setIsLoading] = useState(true)
-  const [error, setError] = useState<string | null>(null)
-  
-  const pdfUrl = `/api/documents/${documentId}/file`
-  
-  const handleLoad = () => {
-    setIsLoading(false)
-    setError(null)
-  }
-  
-  const handleError = () => {
-    setIsLoading(false)
-    setError('Failed to load PDF. The document may not be available.')
-  }
   
   const toggleFullscreen = () => {
     setIsFullscreen(!isFullscreen)
@@ -47,49 +34,18 @@ function InlinePDFViewer({ documentId, title }: { documentId: string, title?: st
           </div>
         </div>
         
-        {/* Loading State */}
-        {isLoading && (
-          <div className="absolute inset-0 flex items-center justify-center bg-gray-50">
-            <div className="text-center">
-              <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mx-auto mb-2"></div>
-              <p className="text-sm text-gray-600">Loading PDF...</p>
-            </div>
-          </div>
-        )}
-        
-        {/* Error State */}
-        {error && (
-          <div className="absolute inset-0 flex items-center justify-center bg-gray-50">
-            <div className="text-center max-w-md p-4">
-              <div className="text-red-500 text-4xl mb-2">⚠️</div>
-              <p className="text-sm text-gray-600 mb-4">{error}</p>
-              <button
-                onClick={() => {
-                  setError(null)
-                  setIsLoading(true)
-                }}
-                className="px-4 py-2 bg-blue-600 text-white text-sm rounded-lg hover:bg-blue-700 transition-colors"
-              >
-                Retry
-              </button>
-            </div>
-          </div>
-        )}
-        
-        {/* PDF Display */}
+        {/* PDF Preview Placeholder */}
         <div className="w-full h-full flex items-center justify-center bg-gray-100">
-          {!error && (
-            <div className="text-center">
-              <div className="text-6xl mb-4">📄</div>
-              <h3 className="text-lg font-semibold text-gray-900 mb-2">PDF Ready for Viewing</h3>
-              <p className="text-gray-600 mb-4">
-                Click "Download PDF" or "Open in New Tab" below to view the document.
-              </p>
-              <div className="text-sm text-gray-500">
-                In-browser PDF viewing is temporarily disabled due to security restrictions.
-              </div>
+          <div className="text-center">
+            <div className="text-6xl mb-4">📄</div>
+            <h3 className="text-lg font-semibold text-gray-900 mb-2">PDF Ready for Viewing</h3>
+            <p className="text-gray-600 mb-4">
+              Click "Download PDF" or "Open in New Tab" below to view the document.
+            </p>
+            <div className="text-sm text-gray-500">
+              In-browser PDF viewing is temporarily disabled due to security restrictions.
             </div>
-          )}
+          </div>
         </div>
       </div>
       
@@ -111,6 +67,7 @@ interface SimplePDFDisplayProps {
 }
 
 export function SimplePDFDisplay({ documentId, title, onDelete }: SimplePDFDisplayProps) {
+  const { user } = useAuth()
   const [isLoading, setIsLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
   const [document, setDocument] = useState<any>(null)
@@ -125,10 +82,17 @@ export function SimplePDFDisplay({ documentId, title, onDelete }: SimplePDFDispl
       setIsLoading(true)
       setError(null)
 
+      const headers: HeadersInit = {
+        'Content-Type': 'application/json',
+      }
+
+      // Add user email to headers if available
+      if (user?.email) {
+        headers['x-user-email'] = user.email
+      }
+
       const response = await fetch(`/api/documents/${documentId}`, {
-        headers: {
-          'Content-Type': 'application/json',
-        }
+        headers
       })
       
       if (!response.ok) {
@@ -151,30 +115,42 @@ export function SimplePDFDisplay({ documentId, title, onDelete }: SimplePDFDispl
     }
   }
 
+  const getPdfUrl = () => {
+    const baseUrl = `/api/documents/${documentId}/file`
+    if (user?.email) {
+      return `${baseUrl}?userEmail=${encodeURIComponent(user.email)}`
+    }
+    return baseUrl
+  }
+
   const handleDownload = () => {
-    const pdfUrl = `/api/documents/${documentId}/file`
+    const pdfUrl = getPdfUrl()
     const link = document.createElement('a')
     link.href = pdfUrl
     link.download = `${title || 'document'}.pdf`
-    link.target = '_blank'
     document.body.appendChild(link)
     link.click()
     document.body.removeChild(link)
   }
 
   const handleViewInBrowser = () => {
-    const pdfUrl = `/api/documents/${documentId}/file`
+    const pdfUrl = getPdfUrl()
     window.open(pdfUrl, '_blank')
   }
 
   const handleShare = async () => {
     try {
-      // Create a share link via API
+      const headers: HeadersInit = {
+        'Content-Type': 'application/json',
+      }
+
+      if (user?.email) {
+        headers['x-user-email'] = user.email
+      }
+
       const response = await fetch(`/api/documents/${documentId}/share`, {
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        }
+        headers
       })
       
       if (response.ok) {
@@ -203,11 +179,17 @@ export function SimplePDFDisplay({ documentId, title, onDelete }: SimplePDFDispl
 
   const handleDelete = async () => {
     try {
+      const headers: HeadersInit = {
+        'Content-Type': 'application/json',
+      }
+
+      if (user?.email) {
+        headers['x-user-email'] = user.email
+      }
+
       const response = await fetch(`/api/documents/${documentId}`, {
         method: 'DELETE',
-        headers: {
-          'Content-Type': 'application/json',
-        }
+        headers
       })
 
       if (!response.ok) {

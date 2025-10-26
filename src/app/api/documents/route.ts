@@ -47,8 +47,37 @@ export async function GET(request: Request) {
       })
     }
 
-    // Get documents including related owner, share links and counts
+    // Get user email from request headers for filtering
+    const userEmail = request.headers.get('x-user-email')
+    
+    if (!userEmail) {
+      console.log('❌ No user email provided in headers')
+      return NextResponse.json({ 
+        error: 'Authentication required',
+        message: 'You must be signed in to view documents'
+      }, { status: 401 })
+    }
+
+    // Find the current user
+    const currentUser = await prisma.user.findUnique({
+      where: { email: userEmail }
+    })
+
+    if (!currentUser) {
+      console.log('❌ User not found in database:', userEmail)
+      return NextResponse.json({ 
+        error: 'User not found',
+        message: 'Please complete your registration'
+      }, { status: 403 })
+    }
+
+    console.log('✅ Fetching documents for user:', currentUser.email)
+
+    // Get documents owned by the current user
     const documents = await prisma.document.findMany({
+      where: {
+        ownerId: currentUser.id
+      },
       include: {
         owner: {
           select: { email: true, role: true }

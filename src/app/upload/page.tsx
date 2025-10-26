@@ -76,25 +76,25 @@ export default function FastUploadPage() {
         headers['x-user-email'] = user.email
       }
       
-      // Try simple upload first (works without database), then fallback to full upload
-      let response = await fetch('/api/simple-upload', {
+      // Try main upload endpoint first (saves to database)
+      let response = await fetch('/api/documents/upload', {
         method: 'POST',
-        body: formData // Simple upload doesn't need headers
+        headers,
+        body: formData
       })
       
-      // If simple upload fails, try main upload endpoint
-      if (!response.ok && response.status !== 400) {
-        console.log('Simple upload failed, trying main upload...')
-        response = await fetch('/api/documents/upload', {
+      // If main endpoint fails due to database issues, try demo endpoint
+      if (!response.ok && (response.status === 503 || response.status === 500)) {
+        console.log('Database upload failed, trying demo upload...')
+        response = await fetch('/api/documents/upload-demo', {
           method: 'POST',
-          headers,
           body: formData
         })
         
-        // If main endpoint returns 503 (database not configured), try demo endpoint
-        if (response.status === 503) {
-          console.log('Database not configured, using demo upload...')
-          response = await fetch('/api/documents/upload-demo', {
+        // If demo also fails, try simple upload as final fallback
+        if (!response.ok) {
+          console.log('Demo upload failed, trying simple upload...')
+          response = await fetch('/api/simple-upload', {
             method: 'POST',
             body: formData
           })

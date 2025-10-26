@@ -101,8 +101,9 @@ export async function GET(
       return serveDemoDocument(params?.id)
     }
 
-    // Get user email from request headers
-    const userEmail = request.headers.get('x-user-email')
+    // Get user email from request headers or query parameters
+    const userEmail = request.headers.get('x-user-email') || 
+                     new URL(request.url).searchParams.get('userEmail')
     
     // Find the document
     const document = await prisma.document.findUnique({

@@ -12,9 +12,8 @@ frontend:
         - echo "🏗️ Building minimal Next.js application..."
         - export NODE_ENV=production
         - export NEXT_TELEMETRY_DISABLED=1
-        - cp src/app/page.minimal.tsx src/app/page.tsx
-        - cp src/app/layout.minimal.tsx src/app/layout.tsx
-        - cp src/app/globals.minimal.css src/app/globals.css
+        - node build-minimal.js
+        - echo "🏗️ Building Next.js application..."
         - npx next build
         - echo "✅ Build completed successfully!"
   artifacts:

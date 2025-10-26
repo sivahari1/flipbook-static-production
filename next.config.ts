@@ -11,9 +11,6 @@ const nextConfig: NextConfig = {
   compress: true,
   poweredByHeader: false,
   output: 'standalone',
-  experimental: {
-    missingSuspenseWithCSRBailout: false,
-  },
 };
 
 export default nextConfig;

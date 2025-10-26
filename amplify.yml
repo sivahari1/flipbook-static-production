@@ -3,17 +3,19 @@ frontend:
   phases:
     preBuild:
       commands:
-        - echo "🚀 Starting simplified FlipBook DRM build..."
+        - echo "🚀 Starting minimal FlipBook DRM build..."
         - echo "📦 Installing dependencies..."
-        - npm ci --legacy-peer-deps --production=false
+        - npm ci --legacy-peer-deps
         - echo "✅ Dependencies installed!"
     build:
       commands:
-        - echo "🏗️ Building working Next.js application..."
+        - echo "🏗️ Building minimal Next.js application..."
         - export NODE_ENV=production
         - export NEXT_TELEMETRY_DISABLED=1
-        - cp src/app/page.simple.tsx src/app/page.tsx
-        - npm run build
+        - cp src/app/page.minimal.tsx src/app/page.tsx
+        - cp src/app/layout.minimal.tsx src/app/layout.tsx
+        - cp src/app/globals.minimal.css src/app/globals.css
+        - npx next build
         - echo "✅ Build completed successfully!"
   artifacts:
     baseDirectory: .next

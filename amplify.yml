@@ -3,8 +3,11 @@ frontend:
   phases:
     preBuild:
       commands:
-        - echo "🚀 Starting PURE HTML deployment - v4..."
+        - echo "🚀 Starting PURE HTML deployment - v5..."
         - echo "📄 No dependencies needed - using static HTML!"
+        - echo "🚫 Removing ALL Next.js files to prevent auto-detection..."
+        - rm -f next.config.ts next.config.js package.json package-lock.json yarn.lock pnpm-lock.yaml || true
+        - rm -rf node_modules .next out || true
         - echo "✅ Ready to deploy!"
     build:
       commands:
@@ -12,13 +15,11 @@ frontend:
         - echo "📁 Listing files to debug..."
         - ls -la
         - ls -la public/
-        - echo "🚫 Hiding Next.js config to prevent auto-detection..."
-        - mv next.config.ts next.config.ts.bak || true
-        - mv package.json package.json.bak || true
         - mkdir -p dist
         - cp public/index.html dist/index.html
         - echo "📁 Verifying dist directory..."
         - ls -la dist/
+        - cat dist/index.html | head -20
         - echo "✅ Static HTML deployment ready!"
   artifacts:
     baseDirectory: dist

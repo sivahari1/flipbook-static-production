@@ -3,22 +3,16 @@ frontend:
   phases:
     preBuild:
       commands:
-        - echo "🚀 Starting minimal FlipBook DRM build..."
-        - echo "📦 Installing dependencies..."
-        - npm ci --legacy-peer-deps
-        - echo "✅ Dependencies installed!"
+        - echo "🚀 Starting PURE HTML deployment..."
+        - echo "📄 No dependencies needed - using static HTML!"
+        - echo "✅ Ready to deploy!"
     build:
       commands:
-        - echo "🏗️ Building static Next.js application..."
-        - export NODE_ENV=production
-        - export NEXT_TELEMETRY_DISABLED=1
-        - npm run build:static
-        - echo "✅ Static build completed successfully!"
+        - echo "🏗️ Copying static HTML files..."
+        - mkdir -p dist
+        - cp public/index.html dist/
+        - echo "✅ Static HTML deployment ready!"
   artifacts:
-    baseDirectory: out
+    baseDirectory: dist
     files:
       - '**/*'
-  cache:
-    paths:
-      - node_modules/**/*
-      - .next/cache/**/*

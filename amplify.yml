@@ -3,7 +3,7 @@ frontend:
   phases:
     preBuild:
       commands:
-        - echo "🚀 Starting PURE HTML deployment..."
+        - echo "🚀 Starting PURE HTML deployment - v2..."
         - echo "📄 No dependencies needed - using static HTML!"
         - echo "✅ Ready to deploy!"
     build:

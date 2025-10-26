@@ -3,16 +3,26 @@ frontend:
   phases:
     preBuild:
       commands:
-        - echo "🚀 Starting PURE HTML deployment - v2..."
+        - echo "🚀 Starting PURE HTML deployment - v4..."
         - echo "📄 No dependencies needed - using static HTML!"
         - echo "✅ Ready to deploy!"
     build:
       commands:
         - echo "🏗️ Copying static HTML files..."
+        - echo "📁 Listing files to debug..."
+        - ls -la
+        - ls -la public/
+        - echo "🚫 Hiding Next.js config to prevent auto-detection..."
+        - mv next.config.ts next.config.ts.bak || true
+        - mv package.json package.json.bak || true
         - mkdir -p dist
-        - cp public/index.html dist/
+        - cp public/index.html dist/index.html
+        - echo "📁 Verifying dist directory..."
+        - ls -la dist/
         - echo "✅ Static HTML deployment ready!"
   artifacts:
     baseDirectory: dist
     files:
       - '**/*'
+  cache:
+    paths: []

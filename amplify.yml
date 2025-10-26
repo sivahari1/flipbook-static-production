@@ -9,15 +9,13 @@ frontend:
         - echo "✅ Dependencies installed!"
     build:
       commands:
-        - echo "🏗️ Building minimal Next.js application..."
+        - echo "🏗️ Building static Next.js application..."
         - export NODE_ENV=production
         - export NEXT_TELEMETRY_DISABLED=1
-        - node build-minimal.js
-        - echo "🏗️ Building Next.js application..."
-        - npx next build
-        - echo "✅ Build completed successfully!"
+        - npm run build:static
+        - echo "✅ Static build completed successfully!"
   artifacts:
-    baseDirectory: .next
+    baseDirectory: out
     files:
       - '**/*'
   cache:

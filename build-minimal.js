@@ -3,13 +3,13 @@
 const fs = require('fs');
 const path = require('path');
 
-console.log('🔧 Setting up minimal build environment...');
+console.log('🔧 Setting up static build environment...');
 
-// Copy minimal files
+// Copy static files
 const filesToCopy = [
-  ['src/app/page.minimal.tsx', 'src/app/page.tsx'],
-  ['src/app/layout.minimal.tsx', 'src/app/layout.tsx'],
-  ['src/app/globals.minimal.css', 'src/app/globals.css']
+  ['src/app/page.static.tsx', 'src/app/page.tsx'],
+  ['src/app/layout.static.tsx', 'src/app/layout.tsx'],
+  ['src/app/globals.static.css', 'src/app/globals.css']
 ];
 
 filesToCopy.forEach(([source, dest]) => {
@@ -21,8 +21,9 @@ filesToCopy.forEach(([source, dest]) => {
   }
 });
 
-// Remove problematic directories
+// Remove ALL problematic directories and API routes
 const dirsToRemove = [
+  'src/app/api',        // Remove ALL API routes
   'src/app/debug',
   'src/app/auth', 
   'src/app/dashboard',
@@ -53,4 +54,4 @@ dirsToRemove.forEach(dir => {
   }
 });
 
-console.log('✅ Minimal build environment ready!');
+console.log('✅ Static build environment ready - no API routes, no server dependencies!');

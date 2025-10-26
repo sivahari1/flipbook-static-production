@@ -10,7 +10,11 @@ const nextConfig: NextConfig = {
   trailingSlash: false,
   compress: true,
   poweredByHeader: false,
-  output: 'standalone',
+  output: 'export',
+  distDir: 'out',
+  images: {
+    unoptimized: true
+  }
 };
 
 export default nextConfig;

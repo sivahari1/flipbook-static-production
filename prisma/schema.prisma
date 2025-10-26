@@ -8,16 +8,16 @@ datasource db {
 }
 
 model User {
-  id                       String           @id @default(cuid())
-  email                    String           @unique
+  id                       String              @id @default(cuid())
+  email                    String              @unique
   passwordHash             String
-  role                     Role             @default(SUBSCRIBER)
-  emailVerified            Boolean          @default(false)
-  emailVerificationToken   String?          @unique
+  role                     Role                @default(SUBSCRIBER)
+  emailVerified            Boolean             @default(false)
+  emailVerificationToken   String?             @unique
   emailVerificationExpires DateTime?
   stripeCustomerId         String?
-  createdAt                DateTime         @default(now())
-  updatedAt                DateTime         @updatedAt
+  createdAt                DateTime            @default(now())
+  updatedAt                DateTime            @updatedAt
   documents                Document[]
   shares                   ShareLink[]
   subscription             Subscription?
@@ -25,6 +25,7 @@ model User {
   viewAudits               ViewAudit[]
   documentAccess           DocumentAccess[]
   pageAccess               PageAccess[]
+  documentAccessLogs       DocumentAccessLog[]
 
   @@map("users")
 }
@@ -59,23 +60,36 @@ model Order {
 }
 
 model Document {
-  id             String           @id @default(cuid())
-  ownerId        String
-  title          String
-  description    String?
-  pageCount      Int              @default(0)
-  hasPassphrase  Boolean          @default(false)
-  passphraseHash String?
-  storageKey     String
-  tilePrefix     String?
-  drmOptions     String           @default("{}")
-  createdAt      DateTime         @default(now())
-  updatedAt      DateTime         @updatedAt
-  owner          User             @relation(fields: [ownerId], references: [id], onDelete: Cascade)
-  shareLinks     ShareLink[]
-  viewAudits     ViewAudit[]
-  documentAccess DocumentAccess[]
-  pageAccess     PageAccess[]
+  id                String              @id @default(cuid())
+  ownerId           String
+  title             String
+  description       String?
+  pageCount         Int                 @default(0)
+  hasPassphrase     Boolean             @default(false)
+  passphraseHash    String?
+  storageKey        String
+  tilePrefix        String?
+  drmOptions        String              @default("{}")
+  createdAt         DateTime            @default(now())
+  updatedAt         DateTime            @updatedAt
+  // PDF Processing fields
+  processedAt       DateTime?
+  totalPages        Int?
+  processingStatus  ProcessingStatus    @default(PENDING)
+  textExtracted     Boolean             @default(false)
+  fileSize          BigInt?
+  mimeType          String?
+  originalFilename  String?
+  owner             User                @relation(fields: [ownerId], references: [id], onDelete: Cascade)
+  shareLinks        ShareLink[]
+  viewAudits        ViewAudit[]
+  documentAccess    DocumentAccess[]
+  pageAccess        PageAccess[]
+  // PDF Processing relations
+  pdfPages          PDFPage[]
+  textSearches      DocumentTextSearch[]
+  processingJobs    PDFProcessingJob[]
+  accessLogs        DocumentAccessLog[]
 
   @@map("documents")
 }
@@ -163,4 +177,87 @@ enum OrderStatus {
   COMPLETED
   FAILED
   CANCELLED
+}
+
+enum ProcessingStatus {
+  PENDING
+  PROCESSING
+  COMPLETED
+  FAILED
+}
+
+enum JobStatus {
+  QUEUED
+  PROCESSING
+  COMPLETED
+  FAILED
+}
+
+enum AccessAction {
+  VIEW
+  SEARCH
+  NAVIGATE
+  DOWNLOAD
+  SHARE
+}
+
+model PDFPage {
+  id           String    @id @default(cuid())
+  documentId   String
+  pageNumber   Int
+  imageUrl     String
+  width        Int
+  height       Int
+  thumbnailUrl String?
+  textContent  String?
+  textBounds   Json?     // Store text positioning data as JSON
+  createdAt    DateTime  @default(now())
+  document     Document  @relation(fields: [documentId], references: [id], onDelete: Cascade)
+
+  @@unique([documentId, pageNumber])
+  @@map("pdf_pages")
+}
+
+model DocumentTextSearch {
+  id             String   @id @default(cuid())
+  documentId     String
+  pageNumber     Int
+  searchableText String
+  wordPositions  Json?    // Store word positions for highlighting as JSON
+  createdAt      DateTime @default(now())
+  document       Document @relation(fields: [documentId], references: [id], onDelete: Cascade)
+
+  @@unique([documentId, pageNumber])
+  @@map("document_text_search")
+}
+
+model PDFProcessingJob {
+  id           String    @id @default(cuid())
+  documentId   String
+  status       JobStatus @default(QUEUED)
+  progress     Int       @default(0)
+  errorMessage String?
+  startedAt    DateTime?
+  completedAt  DateTime?
+  createdAt    DateTime  @default(now())
+  document     Document  @relation(fields: [documentId], references: [id], onDelete: Cascade)
+
+  @@map("pdf_processing_jobs")
+}
+
+model DocumentAccessLog {
+  id         String       @id @default(cuid())
+  userId     String?
+  documentId String
+  pageNumber Int?
+  action     AccessAction
+  ipAddress  String?
+  userAgent  String?
+  sessionId  String?
+  timeSpent  Int?         // Time spent in seconds
+  createdAt  DateTime     @default(now())
+  document   Document     @relation(fields: [documentId], references: [id], onDelete: Cascade)
+  user       User?        @relation(fields: [userId], references: [id])
+
+  @@map("document_access_logs")
 }

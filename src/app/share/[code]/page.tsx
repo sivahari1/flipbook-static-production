@@ -96,12 +96,12 @@ export default function SharePage() {
         method: 'POST'
       })
       
-      // Redirect to document viewer
-      window.location.href = `/view/${shareData?.document.id}`
+      // Redirect to secure shared document viewer
+      window.location.href = `/view/shared/${code}`
     } catch (error) {
       console.error('Error recording view:', error)
       // Still redirect even if view recording fails
-      window.location.href = `/view/${shareData?.document.id}`
+      window.location.href = `/view/shared/${code}`
     }
   }
 

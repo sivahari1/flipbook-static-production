@@ -84,8 +84,9 @@ export default function DocumentsPage() {
         try {
           const stored = localStorage.getItem('flipbook-demo-documents')
           uploadedDocs = stored ? JSON.parse(stored) : []
+          console.log('📋 Found uploaded documents in localStorage:', uploadedDocs.length)
         } catch (e) {
-          console.log('No uploaded documents found')
+          console.log('No uploaded documents found in localStorage')
         }
         
         // Get default demo documents
@@ -99,7 +100,7 @@ export default function DocumentsPage() {
         if (uploadedDocs.length > 0) {
           setError(`Demo Mode: Showing ${uploadedDocs.length} uploaded document(s) and ${demoData.documents?.length || 0} sample documents.`)
         } else {
-          setError('Demo Mode: Showing sample documents. Upload your own PDFs to see them here.')
+          setError('Demo Mode: Database not configured. Showing sample documents. Upload your own PDFs to see them here.')
         }
         return
       }

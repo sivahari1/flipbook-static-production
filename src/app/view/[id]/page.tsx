@@ -4,7 +4,7 @@ import { useState, useEffect } from 'react'
 import { useParams, useRouter } from 'next/navigation'
 import { useAuth } from '@/contexts/AuthContext'
 import { Header } from '@/components/layout/Header'
-import { SimplePDFDisplay } from '@/components/pdf/SimplePDFDisplay'
+import { NativePDFViewer } from '@/components/pdf/NativePDFViewer'
 
 export default function DocumentViewer() {
   const params = useParams()
@@ -225,10 +225,18 @@ export default function DocumentViewer() {
       {/* Document Viewer */}
       <div className="flex-1 p-8">
         <div className="max-w-6xl mx-auto">
-          <SimplePDFDisplay 
-            documentId={document?.id}
+          <NativePDFViewer 
+            documentId={document?.id || ''}
             title={document?.title}
-            onDelete={() => router.push('/documents')}
+            userEmail={user?.email || ''}
+            onAccessDenied={() => {
+              setError('Access denied to this document')
+              setErrorType('access_denied')
+            }}
+            onSecurityViolation={(violation) => {
+              console.warn('Security violation detected:', violation)
+              // Could show a warning toast or log to analytics
+            }}
           />
         </div>
       </div>

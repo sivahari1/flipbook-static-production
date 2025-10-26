@@ -5,10 +5,11 @@ export const runtime = 'nodejs'
 
 export async function POST(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
-    console.log('🔗 Creating share link for document:', params.id)
+    const { id } = await params
+    console.log('🔗 Creating share link for document:', id)
     
     // Check if database is configured
     const isDatabaseConfigured = process.env.DATABASE_URL && 
@@ -16,8 +17,8 @@ export async function POST(
                                 !process.env.DATABASE_URL.includes('build')
 
     // Handle demo documents
-    if (!isDatabaseConfigured || params.id?.startsWith('demo-')) {
-      console.log('🔗 Creating demo share link for:', params.id)
+    if (!isDatabaseConfigured || id?.startsWith('demo-')) {
+      console.log('🔗 Creating demo share link for:', id)
       
       // Generate a demo share code
       const shareCode = `demo-share-${Date.now()}-${Math.random().toString(36).substring(2, 11)}`
@@ -39,7 +40,7 @@ export async function POST(
     
     // Find the document
     const document = await prisma.document.findUnique({
-      where: { id: params.id }
+      where: { id }
     })
 
     if (!document) {
@@ -51,15 +52,21 @@ export async function POST(
     // Generate a unique share code
     const shareCode = `share-${Date.now()}-${Math.random().toString(36).substring(2, 11)}`
     
-    // Find demo user for creator
-    const demoUser = await prisma.user.findUnique({
+    // Find or create demo user for creator
+    let demoUser = await prisma.user.findUnique({
       where: { email: 'demo@example.com' }
     })
 
     if (!demoUser) {
-      return NextResponse.json({
-        error: 'Demo user not found'
-      }, { status: 500 })
+      // Create demo user if it doesn't exist
+      demoUser = await prisma.user.create({
+        data: {
+          email: 'demo@example.com',
+          passwordHash: 'demo-hash',
+          role: 'CREATOR',
+          emailVerified: true
+        }
+      })
     }
 
     // Create share record
@@ -99,10 +106,11 @@ export async function POST(
 
 export async function GET(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
-    console.log('📋 Getting share links for document:', params.id)
+    const { id } = await params
+    console.log('📋 Getting share links for document:', id)
     
     // Check if database is configured
     const isDatabaseConfigured = process.env.DATABASE_URL && 
@@ -110,8 +118,8 @@ export async function GET(
                                 !process.env.DATABASE_URL.includes('build')
 
     // Handle demo documents
-    if (!isDatabaseConfigured || params.id?.startsWith('demo-')) {
-      console.log('📋 Returning demo share links for:', params.id)
+    if (!isDatabaseConfigured || id?.startsWith('demo-')) {
+      console.log('📋 Returning demo share links for:', id)
       
       const baseUrl = request.headers.get('origin') || process.env.NEXTAUTH_URL || 'http://localhost:3000'
       
@@ -119,8 +127,8 @@ export async function GET(
         success: true,
         shares: [
           {
-            code: `demo-share-${params.id}`,
-            url: `${baseUrl}/share/demo-share-${params.id}`,
+            code: `demo-share-${id}`,
+            url: `${baseUrl}/share/demo-share-${id}`,
             createdAt: new Date().toISOString(),
             expiresAt: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString(),
             maxOpens: null,
@@ -135,7 +143,7 @@ export async function GET(
     // Get all shares for this document
     const shares = await prisma.shareLink.findMany({
       where: { 
-        documentId: params.id
+        documentId: id
       },
       orderBy: {
         createdAt: 'desc'

@@ -1,61 +1,69 @@
-import { NextRequest, NextResponse } from 'next/server'
+import { NextResponse } from 'next/server'
 
 export const runtime = 'nodejs'
 
-// Demo documents endpoint that works without database
-export async function GET(request: NextRequest) {
-  console.log('📄 Demo documents API called')
-  
+export async function GET() {
   try {
-    // Return mock documents for demo mode
+    console.log('📋 Returning demo documents')
+    
+    // Return demo documents for testing
     const demoDocuments = [
       {
         id: 'demo-sample-1',
         title: 'Sample Document 1',
-        description: 'This is a demo document for testing purposes',
+        description: 'This is a demo document for testing the secure PDF viewer',
         pageCount: 5,
         createdAt: new Date().toISOString(),
-        fileName: 'sample-document-1.pdf',
-        fileSize: 245760,
-        demoMode: true,
-        owner: { email: 'demo@example.com', role: 'CREATOR' },
+        owner: { email: 'demo@flipbook.drm', role: 'CREATOR' },
         shareLinks: [],
         _count: { viewAudits: 15, shareLinks: 0 },
-        hasPassphrase: false,
-        viewAudits: Array(15).fill(null).map((_, i) => ({ id: i, viewedAt: new Date() }))
+        hasPassphrase: false
       },
       {
         id: 'demo-sample-2', 
         title: 'Sample Document 2',
-        description: 'Another demo document',
+        description: 'Another demo document with more pages',
         pageCount: 8,
         createdAt: new Date(Date.now() - 86400000).toISOString(), // Yesterday
-        fileName: 'sample-document-2.pdf',
-        fileSize: 512000,
-        demoMode: true,
-        owner: { email: 'demo@example.com', role: 'CREATOR' },
+        owner: { email: 'demo@flipbook.drm', role: 'CREATOR' },
+        shareLinks: [
+          {
+            id: 'demo-share-1',
+            code: 'demo-share-sample-2',
+            expiresAt: null,
+            maxOpens: null,
+            openCount: 3,
+            createdAt: new Date(Date.now() - 3600000).toISOString() // 1 hour ago
+          }
+        ],
+        _count: { viewAudits: 8, shareLinks: 1 },
+        hasPassphrase: false
+      },
+      {
+        id: 'demo-sample-3',
+        title: 'Protected Document',
+        description: 'A demo document with password protection',
+        pageCount: 12,
+        createdAt: new Date(Date.now() - 172800000).toISOString(), // 2 days ago
+        owner: { email: 'demo@flipbook.drm', role: 'CREATOR' },
         shareLinks: [],
-        _count: { viewAudits: 8, shareLinks: 0 },
-        hasPassphrase: false,
-        viewAudits: Array(8).fill(null).map((_, i) => ({ id: i, viewedAt: new Date() }))
+        _count: { viewAudits: 25, shareLinks: 0 },
+        hasPassphrase: true
       }
     ]
-
-    return NextResponse.json({
-      success: true,
+    
+    return NextResponse.json({ 
+      success: true, 
       documents: demoDocuments,
-      message: 'Demo documents loaded',
-      note: 'These are sample documents. Upload your own PDFs to see them here.',
-      demoMode: true
+      demoMode: true 
     })
 
   } catch (error) {
-    console.error('❌ Demo documents error:', error)
+    console.error('❌ Error returning demo documents:', error)
     
     return NextResponse.json({
-      error: 'Failed to load demo documents',
-      details: error instanceof Error ? error.message : 'Unknown error',
-      timestamp: new Date().toISOString()
+      error: 'Failed to fetch demo documents',
+      details: error instanceof Error ? error.message : 'Unknown error'
     }, { status: 500 })
   }
 }

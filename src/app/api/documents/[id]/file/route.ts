@@ -56,9 +56,14 @@ async function serveDemoDocument(documentId?: string) {
       return new NextResponse(pdfBuffer as any, {
         headers: {
           'Content-Type': 'application/pdf',
-          'Content-Disposition': `inline; filename="demo-document.pdf"`,
-          'Cache-Control': 'private, no-cache',
-          'Access-Control-Allow-Origin': '*',
+          'Content-Disposition': 'inline',
+          'Cache-Control': 'private, no-cache, no-store, must-revalidate',
+          'Pragma': 'no-cache',
+          'Expires': '0',
+          'X-Content-Type-Options': 'nosniff',
+          'X-Frame-Options': 'SAMEORIGIN',
+          'X-Download-Options': 'noopen',
+          'Access-Control-Allow-Origin': request.headers.get('origin') || '*',
           'Access-Control-Allow-Methods': 'GET',
           'Access-Control-Allow-Headers': 'Content-Type',
         },
@@ -190,11 +195,20 @@ export async function GET(
       return new NextResponse(pdfBuffer as any, {
         headers: {
           'Content-Type': 'application/pdf',
-          'Content-Disposition': `inline; filename="${document.title}.pdf"`,
-          'Cache-Control': 'private, no-cache',
-          'Access-Control-Allow-Origin': '*',
+          'Content-Disposition': 'inline', // Remove filename to prevent easy saving
+          'Cache-Control': 'private, no-cache, no-store, must-revalidate',
+          'Pragma': 'no-cache',
+          'Expires': '0',
+          'X-Content-Type-Options': 'nosniff',
+          'X-Frame-Options': 'SAMEORIGIN',
+          'X-XSS-Protection': '1; mode=block',
+          'Referrer-Policy': 'strict-origin-when-cross-origin',
+          'Content-Security-Policy': "default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline'; img-src 'self' data:; object-src 'none'; frame-ancestors 'self';",
+          'X-Download-Options': 'noopen',
+          'X-Permitted-Cross-Domain-Policies': 'none',
+          'Access-Control-Allow-Origin': request.headers.get('origin') || '*',
           'Access-Control-Allow-Methods': 'GET',
-          'Access-Control-Allow-Headers': 'Content-Type',
+          'Access-Control-Allow-Headers': 'Content-Type, x-session-id, x-user-email',
         },
       })
     } catch (fileError) {
@@ -210,9 +224,14 @@ export async function GET(
         return new NextResponse(pdfBuffer as any, {
           headers: {
             'Content-Type': 'application/pdf',
-            'Content-Disposition': `inline; filename="${document.title}.pdf"`,
-            'Cache-Control': 'private, no-cache',
-            'Access-Control-Allow-Origin': '*',
+            'Content-Disposition': 'inline',
+            'Cache-Control': 'private, no-cache, no-store, must-revalidate',
+            'Pragma': 'no-cache',
+            'Expires': '0',
+            'X-Content-Type-Options': 'nosniff',
+            'X-Frame-Options': 'SAMEORIGIN',
+            'X-Download-Options': 'noopen',
+            'Access-Control-Allow-Origin': request.headers.get('origin') || '*',
             'Access-Control-Allow-Methods': 'GET',
             'Access-Control-Allow-Headers': 'Content-Type',
           },
@@ -226,9 +245,14 @@ export async function GET(
         return new NextResponse(pdfBuffer as any, {
           headers: {
             'Content-Type': 'application/pdf',
-            'Content-Disposition': `inline; filename="${document.title}.pdf"`,
-            'Cache-Control': 'private, no-cache',
-            'Access-Control-Allow-Origin': '*',
+            'Content-Disposition': 'inline',
+            'Cache-Control': 'private, no-cache, no-store, must-revalidate',
+            'Pragma': 'no-cache',
+            'Expires': '0',
+            'X-Content-Type-Options': 'nosniff',
+            'X-Frame-Options': 'SAMEORIGIN',
+            'X-Download-Options': 'noopen',
+            'Access-Control-Allow-Origin': request.headers.get('origin') || '*',
             'Access-Control-Allow-Methods': 'GET',
             'Access-Control-Allow-Headers': 'Content-Type',
           },

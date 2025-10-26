@@ -1,0 +1,22 @@
+version: 1
+frontend:
+  phases:
+    preBuild:
+      commands:
+        - echo "🚀 Starting simplified FlipBook DRM build..."
+        - echo "📦 Installing dependencies..."
+        - npm ci --legacy-peer-deps
+        - echo "✅ Dependencies installed!"
+    build:
+      commands:
+        - echo "🏗️ Building static Next.js application..."
+        - cp next.config.simple.ts next.config.ts
+        - npm run build:static
+        - echo "✅ Static build completed!"
+  artifacts:
+    baseDirectory: out
+    files:
+      - '**/*'
+  cache:
+    paths:
+      - node_modules/**/*

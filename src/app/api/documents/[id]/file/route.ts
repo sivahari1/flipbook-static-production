@@ -4,6 +4,7 @@ import { getStorageProvider, getFileNameFromStorageKey } from '@/lib/storage'
 import { generateSamplePDF } from '@/lib/sample-pdf-generator'
 import { readFile } from 'fs/promises'
 import { join } from 'path'
+import { request } from 'http'
 
 export const runtime = 'nodejs'
 
@@ -161,8 +162,15 @@ export async function GET(
         const fileName = getFileNameFromStorageKey(document.storageKey)
         
         try {
-          // Try to get file from storage provider using the filename
-          pdfBuffer = await storage.getFile(fileName)
+          // Handle different storage key formats
+          if (document.storageKey.startsWith('supabase/')) {
+            // Supabase storage - extract the actual file path
+            const supabasePath = document.storageKey.replace('supabase/', '')
+            pdfBuffer = await storage.getFile(supabasePath)
+          } else {
+            // Try to get file from storage provider using the filename
+            pdfBuffer = await storage.getFile(fileName)
+          }
         } catch (storageError) {
           console.log('📄 Storage provider failed with filename, trying full storage key:', storageError)
           
@@ -181,6 +189,9 @@ export async function GET(
             } else if (document.storageKey.startsWith('demo/')) {
               // For demo files, throw error to trigger fallback
               throw new Error('Demo file not found in storage')
+            } else if (document.storageKey.startsWith('supabase/')) {
+              // For Supabase files, throw error to trigger fallback
+              throw new Error('Supabase file not found in storage')
             } else {
               filePath = join(process.cwd(), 'uploads', fileName)
             }

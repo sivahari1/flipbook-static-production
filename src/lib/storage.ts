@@ -1,6 +1,5 @@
 import { join } from 'path'
 import { writeFile, readFile, mkdir, access } from 'fs/promises'
-import { supabaseStorage, ensureSupabaseBucket } from './supabase-storage'
 
 export interface StorageProvider {
   saveFile(key: string, buffer: Buffer): Promise<string>
@@ -111,37 +110,22 @@ class DemoStorageProvider implements StorageProvider {
   }
 }
 
-// Supabase Storage Provider for production use
-class SupabaseStorageProvider implements StorageProvider {
+// Simplified storage provider for serverless deployment
+class ServerlessStorageProvider implements StorageProvider {
   async saveFile(key: string, buffer: Buffer): Promise<string> {
-    try {
-      await ensureSupabaseBucket()
-      const path = await supabaseStorage.uploadFile(key, buffer)
-      return `supabase/${path}`
-    } catch (error) {
-      console.error('❌ Supabase storage failed, falling back to temp storage:', error)
-      // Fallback to temp storage
-      const tempProvider = new TempStorageProvider()
-      return await tempProvider.saveFile(key, buffer)
-    }
+    // In serverless environments, we'll use temp storage
+    const tempProvider = new TempStorageProvider()
+    return await tempProvider.saveFile(key, buffer)
   }
 
   async getFile(key: string): Promise<Buffer> {
-    try {
-      return await supabaseStorage.downloadFile(key)
-    } catch (error) {
-      console.error('❌ Supabase download failed:', error)
-      throw error
-    }
+    const tempProvider = new TempStorageProvider()
+    return await tempProvider.getFile(key)
   }
 
   async deleteFile(key: string): Promise<void> {
-    try {
-      await supabaseStorage.deleteFile(key)
-    } catch (error) {
-      console.error('❌ Supabase delete failed:', error)
-      throw error
-    }
+    const tempProvider = new TempStorageProvider()
+    return await tempProvider.deleteFile(key)
   }
 
   async getFileUrl(key: string): Promise<string> {
@@ -156,18 +140,9 @@ export function getStorageProvider(): StorageProvider {
                               !process.env.DATABASE_URL.includes('placeholder') && 
                               !process.env.DATABASE_URL.includes('build')
 
-  // Check if Supabase is configured
-  const isSupabaseConfigured = process.env.SUPABASE_URL && 
-                              process.env.SUPABASE_SERVICE_ROLE_KEY
-
   if (!isDatabaseConfigured) {
     console.log('📦 Using demo storage provider (no database)')
     return new DemoStorageProvider()
-  }
-
-  if (isSupabaseConfigured) {
-    console.log('📦 Using Supabase storage provider (production)')
-    return new SupabaseStorageProvider()
   }
 
   // Check if we're in a serverless environment (AWS Amplify, Vercel, etc.)
@@ -176,8 +151,8 @@ export function getStorageProvider(): StorageProvider {
                       process.env.NODE_ENV === 'production'
 
   if (isServerless) {
-    console.log('📦 Using temp storage provider (serverless environment)')
-    return new TempStorageProvider()
+    console.log('📦 Using serverless storage provider (production)')
+    return new ServerlessStorageProvider()
   }
 
   console.log('📦 Using local storage provider (development)')

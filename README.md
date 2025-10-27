@@ -2,6 +2,8 @@
 
 A secure document management and protection platform built with Next.js, featuring advanced DRM capabilities, user authentication, and payment processing.
 
+> **Clean Build**: All Supabase dependencies removed for stable deployment.
+
 ## 🚀 Features
 
 - **Document Protection**: Advanced DRM with watermarking and access controls

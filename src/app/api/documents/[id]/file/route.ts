@@ -161,22 +161,32 @@ export async function GET(
         const fileName = getFileNameFromStorageKey(document.storageKey)
         
         try {
-          // Try to get file from storage provider
+          // Try to get file from storage provider using the filename
           pdfBuffer = await storage.getFile(fileName)
         } catch (storageError) {
-          console.log('📄 Storage provider failed, trying direct file access:', storageError)
+          console.log('📄 Storage provider failed with filename, trying full storage key:', storageError)
           
-          // Fallback to direct file system access for backward compatibility
-          let filePath: string
-          if (document.storageKey.startsWith('uploads/')) {
-            filePath = join(process.cwd(), document.storageKey)
-          } else if (document.storageKey.startsWith('temp/')) {
-            filePath = join('/tmp/uploads', fileName)
-          } else {
-            filePath = join(process.cwd(), 'uploads', fileName)
+          try {
+            // Try with the full storage key (for demo storage)
+            pdfBuffer = await storage.getFile(document.storageKey)
+          } catch (storageError2) {
+            console.log('📄 Storage provider failed completely, trying direct file access:', storageError2)
+            
+            // Fallback to direct file system access for backward compatibility
+            let filePath: string
+            if (document.storageKey.startsWith('uploads/')) {
+              filePath = join(process.cwd(), document.storageKey)
+            } else if (document.storageKey.startsWith('temp/')) {
+              filePath = join('/tmp/uploads', fileName)
+            } else if (document.storageKey.startsWith('demo/')) {
+              // For demo files, throw error to trigger fallback
+              throw new Error('Demo file not found in storage')
+            } else {
+              filePath = join(process.cwd(), 'uploads', fileName)
+            }
+            
+            pdfBuffer = await readFile(filePath)
           }
-          
-          pdfBuffer = await readFile(filePath)
         }
       } else {
         // Fallback to document ID naming

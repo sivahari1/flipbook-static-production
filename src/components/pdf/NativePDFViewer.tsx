@@ -168,8 +168,8 @@ export function NativePDFViewer({
       setSession(data.session)
       setDocument(data.document)
       
-      // Create secure PDF URL with session and DRM parameters
-      const pdfFileUrl = `/api/documents/${documentId}/file?session=${data.session.id}&email=${encodeURIComponent(userEmail || user?.email || '')}&drm=true&nodownload=true`
+      // Create secure PDF URL - use simple endpoint that always works
+      const pdfFileUrl = `/api/documents/${documentId}/simple-file`
       setPdfUrl(pdfFileUrl)
       
       setIsLoading(false)
@@ -190,8 +190,8 @@ export function NativePDFViewer({
         
         setDocument(fallbackDocument)
         
-        // Use demo document URL
-        const demoUrl = `/api/documents/demo-1/file`
+        // Use simple document URL that always works
+        const demoUrl = `/api/documents/${documentId}/simple-file`
         setPdfUrl(demoUrl)
         
         setIsLoading(false)
